@@ -1,5 +1,5 @@
 # Differenze tra MINIX 3 e OS161 #
-
+Partire da questi link
 
 _Per la guida a MINIX 3, cliccare al seguente link: https://wiki.minix3.org/doku.php_
 
