@@ -26,6 +26,9 @@ Reminder dell'architettura:
 ## Parte I comparazione System Calls ##
 
 Alcune delle principali system calls che caratterizzano entrambi i sistemi operativi sono (per analisi comparativa):
+
+https://wiki.minix3.org/doku.php?id=developersguide:kernelapi
+
 - SYS_FORK / https://github.com/Stichting-MINIX-Research-Foundation/minix/blob/master/minix/kernel/system/do_fork.c#L26
 - SYS_EXEC / https://github.com/Stichting-MINIX-Research-Foundation/minix/blob/master/minix/kernel/system/do_exec.c
 - SYS_EXIT / https://github.com/Stichting-MINIX-Research-Foundation/minix/blob/master/minix/kernel/system/do_exit.c
@@ -52,6 +55,10 @@ La system call FORK causa la creazione di un nuovo processo "figlio" a partire d
 
 ### SYS_EXIT ###
 
+La system call EXIT è una chiamata di sistema utilizzata per terminare un processo in un sistema operativo. Quando un programma chiama l'istruzione "exit", il processo corrente viene terminato e le risorse associate ad esso, come la memoria, i file aperti e altre risorse di sistema, vengono rilasciate. Prima di terminare il processo, viene di solito restituito un valore di uscita al chiamante, che può essere che può essere recuperato dal processo padre o dal sistema operativo e utilizzato per valutare lo stato di terminazione del processo.
+Entrambi i sistemi operativi implementano la system call EXIT per terminare i processi correnti, ma in modo differente. Infatti, in OS161 quando viene chiamata la system call exit, il processo corrente viene segnalato come "terminato" e tutte le sue risorse vengono liberate, mentre in MINIX il processo corrente viene terminato e segnalato come "zombie". Un processo zombie è un processo che ha terminato l'esecuzione ma il suo stato di terminazione non è ancora stato raccolto dal padre. Inoltre MINIX offre un meccanismo più sofisticato per la gestione dei processi figli, ovvero implementa un meccanismo di gestione dei processi figli chiamato "reaper". Il reaper è un processo separato che si occupa di raccogliere gli stati di terminazione dei processi figli zombie. Quando un processo padre richiede lo stato di terminazione di un processo figlio zombie, il reaper lo raccoglie e restituisce le informazioni appropriate al padre. OS161 invece non ha un meccanismo specifico per la gestione dei processi figli terminati.
+
+_aggiungere prototipi_
 
 ### SYS_CLEAR ###
 
@@ -62,6 +69,7 @@ La system call FORK causa la creazione di un nuovo processo "figlio" a partire d
 _NB: OS161 round-robin, MINIX con multilevel queueing system (di base round-robin ma più flessibile) (es: politiche di schedulazione, flessibilità)_
 
 **Politiche di Scheduling**
+
 Le politiche di scheduling di OS161 e MINIX 3 sono diverse poichè i due sistemi operativi hanno scopi e approcci diversi rispetto alla gestione dello scheduling dei processi.
 In particolare, OS161 utilizza una politica di scheduling semplice e predefinita basata sull'approccio Round Robin (RR), in cui ogni processo riceve un quantum di tempo assegnato e, quando il quantum scade, il processo viene messo in coda e viene eseguito il successivo processo pronto. Questo ciclo di esecuzione continua finchè ci sono processi nella coda pronti ad essere eseguiti. Inoltre, in OS161 non è possibile implementare politiche di scheduling personalizzate poiché l'allocazione del tempo della CPU è principalmente gestita dal kernel per ragioni di sicurezza e stabilità.
 MINIX invece utilizza una politica di scheduling più sofisticata, chiamata Multilevel Feedback Queue (MFQ). L'algoritmo MFQ prevede l'esistenza di più code con diversi livelli di priorità. I processi vengono inizialmente inseriti nella coda di priorità più alta e se un processo utilizza tutto il suo quantum di tempo senza terminare, viene degradato nella coda di priorità inferiore. D'altra parte, se un processo è bloccato o termina prima di utilizzare tutto il suo quantum, viene promosso alla coda di priorità superiore. Questa politica offre maggiore flessibilità e consente agli sviluppatori di definire algoritmi di scheduling specifici per gruppi di processi con esigenze diverse o applicazioni particolari.
@@ -94,6 +102,7 @@ Scelte tre:
 2) Gestione della memoria fisica migliorata: Esplorare l'implementazione di una gestione della memoria fisica più efficiente o adottare meccanismi di paginazione avanzati presenti in OS161 per ottimizzare l'allocazione e la gestione della memoria fisica.
 
 3) File System più avanzato: Se OS161 ha un file system con funzionalità aggiuntive o prestazioni migliorate, potresti lavorare per implementare un nuovo file system o estendere quello esistente in MINIX per offrire funzionalità avanzate.
+https://web.ecs.syr.edu/~wedu/seed/Documentation/Minix3/How_to_add_system_call.pdf
 
 4) Miglioramento delle prestazioni: Potresti analizzare il codice e l'implementazione di MINIX per identificare aree che potrebbero essere ottimizzate per migliorare le prestazioni generali del sistema operativo.
 
