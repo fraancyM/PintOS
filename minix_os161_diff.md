@@ -5,7 +5,7 @@ _Per la guida a MINIX 3, cliccare al seguente link: https://wiki.minix3.org/doku
 
 _Per il source code di minix: https://github.com/Stichting-MINIX-Research-Foundation/minix_
 
-_Per la presentazione, verrà aggiunto anche un fil powerpoint_
+_Per la presentazione, verrà aggiunto anche un file powerpoint_
 
 Argomenti /RICERCA COMPARATIVA/:
 - MINIX 3 Kernel API (important for SYSTEM CALLS and MEMORY MANAGEMENT): https://wiki.minix3.org/doku.php?id=developersguide:kernelapi
@@ -61,6 +61,12 @@ La system call FORK causa la creazione di un nuovo processo "figlio" a partire d
 ## Parte II comparazione Scheduling ##
 _NB: OS161 round-robin, MINIX con multilevel queueing system (di base round-robin ma più flessibile) (es: politiche di schedulazione, flessibilità)_
 
+**Politiche di Scheduling**
+Le politiche di scheduling di OS161 e MINIX 3 sono diverse poichè i due sistemi operativi hanno scopi e approcci diversi rispetto alla gestione dello scheduling dei processi.
+In particolare, OS161 utilizza una politica di scheduling semplice e predefinita basata sull'approccio Round Robin (RR), in cui ogni processo riceve un quantum di tempo assegnato e, quando il quantum scade, il processo viene messo in coda e viene eseguito il successivo processo pronto. Questo ciclo di esecuzione continua finchè ci sono processi nella coda pronti ad essere eseguiti. Inoltre, in OS161 non è possibile implementare politiche di scheduling personalizzate poiché l'allocazione del tempo della CPU è principalmente gestita dal kernel per ragioni di sicurezza e stabilità.
+MINIX invece utilizza una politica di scheduling più sofisticata, chiamata Multilevel Feedback Queue (MFQ). L'algoritmo MFQ prevede l'esistenza di più code con diversi livelli di priorità. I processi vengono inizialmente inseriti nella coda di priorità più alta e se un processo utilizza tutto il suo quantum di tempo senza terminare, viene degradato nella coda di priorità inferiore. D'altra parte, se un processo è bloccato o termina prima di utilizzare tutto il suo quantum, viene promosso alla coda di priorità superiore. Questa politica offre maggiore flessibilità e consente agli sviluppatori di definire algoritmi di scheduling specifici per gruppi di processi con esigenze diverse o applicazioni particolari.
+
+_to be continued_
 
 
 ## Parte III comparazione gestione di memoria ##
