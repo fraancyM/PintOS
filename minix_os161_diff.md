@@ -92,7 +92,7 @@ In _Minix_ lo scheduling mantiene 16 code di priorità e viene realizzato median
 - Sched
 - Pick proc: seleziona il primo processo disponibile nella ready queue di priorità più alta e non vuota. Il puntatore al PCB (protocol control bock) del processo viene inerito nella variabile next_ptr che sarà poi utilizzata dalla procedura restart.
 
-![Coda iniziale dei processi in Minix 3](C:\Users\franc\Desktop\Progetto_OS\Group30\images\Ready_queue_minix.png)
+![Coda iniziale dei processi in Minix 3](/images/Ready_queue_minix.png)
 
 _to be continued_
 
