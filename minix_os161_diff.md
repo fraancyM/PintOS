@@ -47,8 +47,24 @@ La system call FORK causa la creazione di un nuovo processo "figlio" a partire d
 1) Architettura: OS161 è basato su MIPS, mentre MINIX è più general purpose e può essere usato su varie architetture Hardware.
 2) Gestione della memoria: OS161 ha una gestione della memoria abbastanza semplificata (paginazione, visti a lezione), mentre MINIX possiede uno spazio "segmentato" (cioè distinzione/separazione tra spazio kernel ed utente, offrendo anche protezione dello spazio kernel in questo caso). Può risultare che questo modello di gestione della memoria di MINIX sia più semplice rispetto a quello di OS161 (che utilizza modelli di memoria paging più avanzata).
 3) Portabilità: MINIX risulta essere più portabile rispetto ad OS161, in quanto supporta diverse architetture Hardware. 
+
+![Esempio della fork](./images/fork_example.png)
+_Immagine inerente al processo di fork_
  
  + da aggiungere la dichiarazione delle due funzioni FORK
+
+ ```c
+// MINIX
+void sys_fork(int exitcode) {
+    /* ... */
+}
+```
+```c
+// OS161
+void sys_fork(int exitcode) {
+    /* ... */
+}
+```
 
 ### SYS_EXEC ###
 
@@ -92,7 +108,7 @@ In _Minix_ lo scheduling mantiene 16 code di priorità e viene realizzato median
 - Sched
 - Pick proc: seleziona il primo processo disponibile nella ready queue di priorità più alta e non vuota. Il puntatore al PCB (protocol control bock) del processo viene inerito nella variabile next_ptr che sarà poi utilizzata dalla procedura restart.
 
-![Coda iniziale dei processi in Minix 3](/images/Ready_queue_minix.png)
+![Coda iniziale dei processi in Minix 3](./images/Ready_queue_minix.png)
 
 _to be continued_
 
@@ -112,7 +128,7 @@ Passando alla gestione degli errori (quindi i cosiddetti Page fault), entrambi i
 
 2) Quando un processo tenta di accedere a una parte della memoria virtuale mappata a un file. In questo caso, il server VM, prima di tutto, verifica nella cache delle pagine per vedere se la pagina richiesta è presente. Se è presente, la pagina viene caricata direttamente dalla cache alla memoria fisica. In caso contrario, il server VM dovrà consultare il file system (VFS - Virtual File System) per recuperare la pagina richiesta dal file sorgente e caricarla nella memoria fisica.
 
-to be continued... ( Call Stucture + PM Server )
+to be continued... ( Call Stucture + PM Server + foto di come funziona una fork???)
 
 ## (TBD) Parte IV implementazione di nuove funzionalità  ##
 Scelte tre:
