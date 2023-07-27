@@ -20,12 +20,17 @@ Argomenti contro-parte OS:
 
 Reminder dell'architettura: 
 
-- OS161: OS161 è progettato come un sistema operativo monolitico, dove tutti i componenti chiave, come il kernel e i driver dei dispositivi, risiedono in uno spazio di indirizzamento comune.
-- MINIX: MINIX, nelle sue prime versioni, era anche un sistema operativo monolitico, ma con l'evoluzione verso MINIX 3, si è adottata un'architettura a microkernel. In un microkernel, le funzionalità del sistema operativo sono suddivise in moduli separati che vengono eseguiti nello spazio utente, riducendo così la complessità del kernel e aumentando la sicurezza e la stabilità.
+- OS161: è progettato come un sistema operativo monolitico, dove tutti i componenti chiave, come il kernel e i driver dei dispositivi, risiedono in uno spazio di indirizzamento comune.
+- MINIX: nelle sue prime versioni, era anche un sistema operativo monolitico, ma con l'evoluzione verso MINIX 3, si è adottata un'architettura a microkernel. In un microkernel, le funzionalità del sistema operativo sono suddivise in moduli separati che vengono eseguiti nello spazio utente, riducendo così la complessità del kernel e aumentando la sicurezza e la stabilità.
 
 ## Parte I comparazione System Calls ##
 
-Alcune delle principali system calls che caratterizzano entrambi i sistemi operativi sono (per analisi comparativa):
+In generale non ci sono grosse differenze tra le system call dei due sistemi operativi, ma si differenziano su alcuni aspetti, quali: 
+1) **Architettura**: OS161 è basato su MIPS, mentre MINIX, essendo general purpose, può essere usato su varie architetture Hardware.
+2) **Gestione della memoria**: OS161 ha una gestione della memoria abbastanza semplificata (paginazione, visti a lezione), mentre MINIX possiede uno spazio "segmentato" (cioè distinzione/separazione tra spazio kernel ed utente, offrendo anche protezione dello spazio kernel in questo caso). Può risultare che questo modello di gestione della memoria di MINIX sia più semplice rispetto a quello di OS161 (che utilizza modelli di memoria paging più avanzata).
+3) **Portabilità**: MINIX risulta essere più portabile rispetto ad OS161, in quanto supporta diverse architetture Hardware. 
+
+Ora verranno esaminate più approfinditamente alcune delle principali system calls che caratterizzano OS161 e Minix3 (per analisi comparativa):
 
 https://wiki.minix3.org/doku.php?id=developersguide:kernelapi
 
@@ -34,19 +39,13 @@ https://wiki.minix3.org/doku.php?id=developersguide:kernelapi
 - SYS_EXIT / https://github.com/Stichting-MINIX-Research-Foundation/minix/blob/master/minix/kernel/system/do_exit.c
 - SYS_CLEAR / https://github.com/Stichting-MINIX-Research-Foundation/minix/blob/master/minix/kernel/system/do_clear.c
 - SYS_KILL / https://github.com/Stichting-MINIX-Research-Foundation/minix/blob/master/minix/kernel/system/do_kill.c
-
 - SYS_REBOOT / https://github.com/Stichting-MINIX-Research-Foundation/minix/blob/4db99f4012570a577414fe2a43697b2f239b699e/minix/servers/pm/misc.c#L199
 - SYS_WAITPID / https://github.com/Stichting-MINIX-Research-Foundation/minix/blob/4db99f4012570a577414fe2a43697b2f239b699e/minix/servers/pm/forkexit.c#L475
- etc...
 
-... (comparazioni possono essere fatte su fork, exec, exit, abort, waitpid, kill ...)
 
 ### SYS_FORK ###
 
-La system call FORK causa la creazione di un nuovo processo "figlio" a partire da un "padre", e il processo che si verrà a creare sarà esattamente una copia del "padre", fatta eccezzione per alcune caratteristiche, come ad esempio l'ID del "figlio" che è unico e diverso da quello del "padre". Non c'è una sostanziale differenza tra le due FORK eseguite in MINIX o OS161, possiedono lo stesso obiettivo ma differenziano su altri piccoli aspetti, quali: 
-1) Architettura: OS161 è basato su MIPS, mentre MINIX è più general purpose e può essere usato su varie architetture Hardware.
-2) Gestione della memoria: OS161 ha una gestione della memoria abbastanza semplificata (paginazione, visti a lezione), mentre MINIX possiede uno spazio "segmentato" (cioè distinzione/separazione tra spazio kernel ed utente, offrendo anche protezione dello spazio kernel in questo caso). Può risultare che questo modello di gestione della memoria di MINIX sia più semplice rispetto a quello di OS161 (che utilizza modelli di memoria paging più avanzata).
-3) Portabilità: MINIX risulta essere più portabile rispetto ad OS161, in quanto supporta diverse architetture Hardware. 
+La system call FORK causa la creazione di un nuovo processo "figlio" a partire da un "padre", e il processo che si verrà a creare sarà esattamente una copia del "padre", fatta eccezzione per alcune caratteristiche, come ad esempio l'ID del "figlio" che è unico e diverso da quello del "padre". 
 
 ![Esempio della fork](./images/fork_example.png)
 _Immagine inerente al processo di fork_
@@ -81,24 +80,28 @@ La system call EXIT è una chiamata di sistema utilizzata per terminare un proce
 
 Entrambi i sistemi operativi implementano la system call EXIT per terminare i processi correnti, ma in modo leggermente differente. Infatti, in OS161 quando viene chiamata la system call exit, il processo corrente viene segnalato come "terminato" e tutte le sue risorse vengono liberate, mentre in MINIX il processo corrente viene terminato e segnalato come "zombie". Un processo zombie è un processo che ha terminato l'esecuzione, ma il suo stato di terminazione non è ancora stato raccolto dal padre. Inoltre MINIX offre un meccanismo più sofisticato per la gestione dei processi figli, ovvero implementa un meccanismo chiamato "reaper". Il reaper è un processo separato che si occupa di raccogliere gli stati di terminazione dei processi figli zombie. Quando un processo padre richiede lo stato di terminazione di un processo figlio zombie, il reaper lo raccoglie e restituisce le informazioni appropriate al padre. OS161 invece non ha un meccanismo specifico per la gestione dei processi figli terminati.
 
-In OS161, la system call _exit_ è definita nel file kern/syscall/proc_syscalls.c e riceve come parametro un intero che rappresenta lo stato di uscita del processo:
-
 ```c
+//OS161
 void sys_exit(int exitcode) {
     /* ... */
 }
 ```
 
-_aggiungere prototipo per minix_
+```c
+//MINIX
+int sys_exit() {
+    /* ... */
+}
+```
 
 
-### SYS_CLEAR ###
+### SYS_WAITPID ###
 
 
 ### SYS_KILL ###
 
+
 ## Parte II comparazione Scheduling ##
-_NB: OS161 round-robin, MINIX con multilevel queueing system (di base round-robin ma più flessibile) (es: politiche di schedulazione, flessibilità)_
 
 **Politiche di Scheduling**
 
@@ -146,6 +149,7 @@ Quando la VM riceve delle chiamate dallo spazio utente, dal Process Manager o da
 3) Aggiornamento delle strutture dati coinvolti dalla chiamata (es: region.c, pagetable.c etc...)
 
 _to be continued... ( + PM Server )_
+_Fare i confronti con gestione chiamate OS161_
 
 ## (TBD) Parte IV implementazione di nuove funzionalità  ##
 Scelte tre:
