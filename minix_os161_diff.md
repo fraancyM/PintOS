@@ -61,12 +61,19 @@ int sys_fork(parent, child, child_endpoint, flags, msgaddr)
 {
     /* code */
 }
+- "endpoint_t parent" indica l'endpoint (ID di endpoint) del processo padre.
+- "endpoint_t child" indica  l'endpoint del nuovo processo figlio creato dalla chiamata fork.
+- "endpoint_t *child_endpoint" è un puntatore a un endpoint_t, e viene utilizzato per restituire l'endpoint del processo figlio al processo padre.
+- "u32_t flags" può essere utilizzata per indicare alcune opzioni o comportamenti desiderati per la fork.
+- "vir_bytes *msgaddr" rappresenta l'indirizzo in cui il messaggio viene passato tra il processo padre e il processo figlio dopo la fork. 
 ```
 ```c
 // OS161
-pid_t sys_fork(struct trapframe *tf, int *retval); {
+pid_t sys_fork(struct trapframe *tf, int *retval) {
     /* code */
 }
+- "struct trapframe *tf"  è un puntatore a una struttura di dati chiamata "trapframe", che rappresenta lo stato del thread corrente nel momento in cui viene effettuata la chiamata di sistema "fork". Nella chiamata di sistema "fork", il trapframe contiene lo stato del thread corrente, che verrà duplicato nel nuovo processo creato.
+- "int *retval" è un puntatore a un intero (int), utilizzato per restituire il valore di ritorno della chiamata di sistema "fork". Il valore di ritorno sarà il PID (Process ID) del nuovo processo figlio nel processo padre e 0 nel processo figlio.
 ```
 
 ### SYS_EXEC ###
@@ -93,7 +100,7 @@ int sys_exit() {
     /* ... */
 }
 ```
-
++ spiegare somiglianza ?
 
 ### SYS_WAITPID ###
 
@@ -152,21 +159,19 @@ In _OS161_, invece, l'esecuzione dello scheduler è attivata solo in presenza di
 
 
 ## Parte III comparazione gestione di memoria ##
-_NB: Post-3.2 Minix supporta la virtualizzazione, il paging e il demand paging. Inoltre ha una nuova VM (virtual memory) server separato da PM.Supponiamo che i segmenti dei processi siano disposti in modo contiguo in virtual memoria ma nessuna assunzione contigua sulla memoria fisica._
-
 _Premessa: il sistema operativo MINIX è basato su architettura a Microkernel, il che semplifica la gestione del kernel e sposta, di conseguenza, le funzionalità più complesse in spazi utente chiamati "server" (es. gestione dei file system, gestione memoria virtuale etc...). Si ricorda anche che MINIX pre-3.1 non supporta paginazione (i processi sono allocati in maniera contigua all'interno della memoria), mentre dalla versione 3.2 supporta questa caratteristica._
 
 Andiamo adesso ad approfondire le differenze/somiglianze sulla gestione di memoria tra MINIX e OS161. 
 
 **Paging e virtual memory**
 
-Dalla versione 3.2 di MINIX, questo sistema operativo supporta la paginazione, la memoria virtuale e la paginazione su richiesta (paging, virtualization and demand paging), di conseguenza viene introdotto un nuovo "server" VM (virtual memory) per gestire la memoria virtuale: ogni processo ha segmenti allocati in modo contiguo nello spazio di indirizzamento virtuale, ma non vi sono assunzioni di contiguità sulla memoria fisica. Ne deriva il fatto che sia MINIX, sia OS161 hanno supporto per Paging e Memoria virtuale (che quindi consente di separare lo spazio di indirizzamento virtuale di un processo dalla memoria fisica, permettendo maggiore isolamento e protezione dei processi).
+Dalla versione 3.2 di MINIX, questo sistema operativo supporta la paginazione, la memoria virtuale e la paginazione su richiesta (paging, virtualization and demand paging): ogni processo ha segmenti allocati in maniera anche non contigua nello spazio di indirizzamento virtuale, ma non vi sono assunzioni di contiguità sulla memoria fisica. Ne deriva il fatto che sia MINIX, sia OS161 hanno supporto per Paging e Memoria virtuale (che quindi consente di separare lo spazio di indirizzamento virtuale di un processo dalla memoria fisica, permettendo maggiore isolamento e protezione dei processi).
 
 Si può, inoltre, evincere che entrambi i sistemi operativi utilizzino le tabelle (Page table) per gestire la paginazione e mappare gli indirizzi virtuali degli utenti agli indirizzi fisici della memoria, oltre che l'uso di strutture dati come Bitmap o Linked List. Anche per quanto riguarda gli algoritmi di allocazione (della memoria fisica), entrambi i sistemi operativi condividono certe soluzioni, quali: First-fit, Best-fit, Worst-fit (MINIX possiede anche Next-fit e Quick-fit); si ricorda, però, che queste soluzioni non riguardano le ultime versioni di MINIX (post-3.2), le quali usano "holes and allocation", ovvero buchi e allocazione nello spazio di indirizzamento virtuale (quindi allocazione anche NON contigua nello spazio d'indirizzamento virtuale).
 
-Passando alla gestione degli errori (quindi i cosiddetti Page fault), entrambi i sistemi operativi gestiscono questo fenomeno in maniera simile. Distiguiamo due casi (della gestione) per MINIX: 
+Passando alla gestione degli errori (quindi i cosiddetti Page fault), entrambi i sistemi operativi gestiscono questo fenomeno in maniera simile (anche se in OS161 questi aspetti sono più semplificati). Distiguiamo due casi (della gestione) per MINIX: 
 
-1) Quando un processo tenta di accedere a una parte della memoria virtuale che non è ancora stata mappata a una pagina fisica. In questo caso, il server VM può allocare una nuova pagina fisica e mapparla nello spazio di indirizzamento del processo.
+1) Quando un processo tenta di accedere a una parte della memoria virtuale che non è ancora stata mappata a una pagina fisica. In questo caso, MINIX può allocare una nuova pagina fisica e mapparla nello spazio di indirizzamento del processo.
 
 2) Quando un processo tenta di accedere a una parte della memoria virtuale mappata a un file. In questo caso, il server VM, prima di tutto, verifica nella cache delle pagine per vedere se la pagina richiesta è presente. Se è presente, la pagina viene caricata direttamente dalla cache alla memoria fisica. In caso contrario, il server VM dovrà consultare il file system (VFS - Virtual File System) per recuperare la pagina richiesta dal file sorgente e caricarla nella memoria fisica.
 
@@ -177,8 +182,9 @@ Quando la VM riceve delle chiamate dallo spazio utente, dal Process Manager o da
 2) Viene eseguito il lavoro specifico associato alla chiamata
 3) Aggiornamento delle strutture dati coinvolti dalla chiamata (es: region.c, pagetable.c etc...)
 
-_to be continued... ( + PM Server )_
-_Fare i confronti con gestione chiamate OS161_
+In OS161, il "flusso" di gestione delle chiamate di sistema è pressochè simile, ovviamente facendo distinzione tra i diversi sistemi operativi, che quindi può portare ad usare strutture dati, interfacce e complessità differenti tra un'architettura e l'altra.
+
+_to be continued... ( + PM + ipotetiche conclusioni?)_
 
 ## (TBD) Parte IV implementazione di nuove funzionalità  ##
 Scelte tre:
