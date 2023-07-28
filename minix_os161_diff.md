@@ -1,5 +1,4 @@
-# Differenze tra MINIX 3 e OS161 #
-Partire da questi link
+Link utili
 
 _Per la guida a MINIX 3, cliccare al seguente link: https://wiki.minix3.org/doku.php_
 
@@ -18,10 +17,19 @@ Argomenti contro-parte OS:
 - System calls: https://ops-class.org/man/syscall/
 - Processes scheduling: http://jhshi.me/2012/03/18/os161-process-scheduling/index.html
 
-Reminder dell'architettura: 
 
-- OS161: è progettato come un sistema operativo monolitico, dove tutti i componenti chiave, come il kernel e i driver dei dispositivi, risiedono in uno spazio di indirizzamento comune.
-- MINIX: nelle sue prime versioni, era anche un sistema operativo monolitico, ma con l'evoluzione verso MINIX 3, si è adottata un'architettura a microkernel. In un microkernel, le funzionalità del sistema operativo sono suddivise in moduli separati che vengono eseguiti nello spazio utente, riducendo così la complessità del kernel e aumentando la sicurezza e la stabilità.
+# Progetto 1.1: Analisi Comparativa tra OS161 e altri sistemi operativi open-source all'avanguardia per sistemi embedded e computer general purpose
+Per questo progetto abbiamo scelto di analizzare _MINIX 3_, un sistema operativo open source simile a Unix, progettato per scopi didattici e di ricerca, altamente affidabile e portatile.
+_Minix_ è stato creato da Andrew S. Tanenbaum nel 1987 e da allora ha subito diverse revisioni importanti. Noi approfondiremo la versione 3.0 che è stato rilasciata nel 2005.
+
+Di seguito verranno esaminate nel dettaglio le sue caratteristiche e messe a confronto con il sistema operativo OS161, studiato durante il corso di Programmazione di Sistema.  
+
+
+## Architettura ##
+
+_OS161_ è progettato come un sistema operativo monolitico, dove tutti i componenti chiave, come il kernel e i driver dei dispositivi, risiedono in uno spazio di indirizzamento comune.
+
+_MINIX_, nelle sue prime versioni, è stato un sistema operativo monolitico, ma con l'evoluzione verso MINIX 3, si è adottata un'architettura a microkernel con un design modulare. In un microkernel, le funzionalità del sistema operativo sono suddivise in moduli separati che vengono eseguiti nello spazio utente, riducendo così la complessità del kernel e aumentando la sicurezza e la stabilità. È scritto in linguaggio C e assembly e supporta diverse piattaforme hardware, tra cui x86, ARM.
 
 ## Parte I comparazione System Calls ##
 
