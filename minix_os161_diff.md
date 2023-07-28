@@ -18,7 +18,7 @@ Argomenti contro-parte OS:
 - Processes scheduling: http://jhshi.me/2012/03/18/os161-process-scheduling/index.html
 
 
-# Progetto 1.1: Analisi Comparativa tra OS161 e altri sistemi operativi open-source all'avanguardia per sistemi embedded e computer general purpose
+# Progetto 1.1: Analisi comparativa tra OS161 e altri sistemi operativi open-source all'avanguardia per sistemi embedded e computer general purpose
 Per questo progetto abbiamo scelto di analizzare _MINIX 3_, un sistema operativo open source simile a Unix, progettato per scopi didattici e di ricerca, altamente affidabile e portatile.
 _Minix_ è stato creato da Andrew S. Tanenbaum nel 1987 e da allora ha subito diverse revisioni importanti. Noi approfondiremo la versione 3.0 che è stato rilasciata nel 2005.
 
@@ -31,9 +31,9 @@ _OS161_ è progettato come un sistema operativo monolitico, dove tutti i compone
 
 _MINIX_, nelle sue prime versioni, è stato un sistema operativo monolitico, ma con l'evoluzione verso MINIX 3, si è adottata un'architettura a microkernel con un design modulare. In un microkernel, le funzionalità del sistema operativo sono suddivise in moduli separati che vengono eseguiti nello spazio utente, riducendo così la complessità del kernel e aumentando la sicurezza e la stabilità. È scritto in linguaggio C e assembly e supporta diverse piattaforme hardware, tra cui x86, ARM.
 
-## Parte I comparazione System Calls ##
+## Parte I: Comparazione System Calls ##
 
-In generale le system call dei due sistemi operativi non presentano grosse differenze, ma si differenziano su alcuni aspetti, quali: 
+In generale le system calls dei due sistemi operativi non presentano grosse differenze, ma si differenziano su alcuni aspetti, quali: 
 1) **Architettura**: OS161 è basato su MIPS, mentre MINIX, essendo general purpose, può essere usato su varie architetture Hardware.
 2) **Gestione della memoria**: OS161 ha una gestione della memoria abbastanza semplificata (paginazione, visti a lezione), mentre MINIX possiede uno spazio "segmentato" (cioè distinzione/separazione tra spazio kernel ed utente, offrendo anche protezione dello spazio kernel in questo caso). Può risultare che questo modello di gestione della memoria di MINIX sia più semplice rispetto a quello di OS161 (che utilizza modelli di memoria paging più avanzata).
 3) **Portabilità**: MINIX risulta essere più portabile rispetto ad OS161, in quanto supporta diverse architetture Hardware. 
@@ -116,11 +116,11 @@ int sys_exit() {
 ### SYS_KILL ###
 
 
-## Parte II comparazione Scheduling ##
+## Parte II: Comparazione Scheduling ##
 
 ### Obiettivi ###
 
-_OS161_ e _MINIX 3_ hanno scopi e approcci diversi rispetto alla gestione dello scheduling dei processi. _OS161_ è principalmente un sistema operativo didattico per l'apprendimento dei concetti dei sistemi operativi con un'implementazione semplice. _MINIX 3_ è un sistema operativo di ricerca più completo che fornisce una pianificazione più sofisticata e adatta per scenari reali, adattandosi esigenze specifiche e ambienti diversi
+_OS161_ e _MINIX 3_ hanno scopi e approcci diversi rispetto alla gestione dello scheduling dei processi. _OS161_ è principalmente un sistema operativo didattico per l'apprendimento dei concetti dei sistemi operativi con un'implementazione semplice. _MINIX 3_ è un sistema operativo di ricerca più completo che fornisce una pianificazione più sofisticata e adatta per scenari reali, adattandosi ad esigenze specifiche e ambienti diversi
 
 ### Politiche di Scheduling ###
 
