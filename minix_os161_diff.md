@@ -89,9 +89,9 @@ pid_t sys_fork(struct trapframe *tf, int *retval) {
 
 ### SYS_EXIT ###
 
-La system call EXIT è una chiamata di sistema utilizzata per terminare un processo in un sistema operativo. Quando un programma chiama la funzione "exit", il processo corrente viene terminato e le risorse associate ad esso, come la memoria, i file aperti e altre risorse di sistema, vengono rilasciate. Prima di terminare il processo viene di solito restituito un valore di uscita al chiamante, che può essere recuperato dal processo padre o dal sistema operativo e utilizzato per valutare lo stato di terminazione del processo.
+La system call EXIT è una chiamata di sistema utilizzata per terminare un processo in un sistema operativo. Quando un programma chiama la funzione _exit_, il processo corrente viene terminato e le risorse associate ad esso, come la memoria, i file aperti e altre risorse di sistema, vengono rilasciate. Prima di terminare il processo viene di solito restituito un valore di uscita al chiamante, che può essere recuperato dal processo padre o dal sistema operativo e utilizzato per valutare lo stato di terminazione del processo.
 
-Entrambi i sistemi operativi implementano la system call EXIT per terminare i processi correnti, ma in modo leggermente differente. Infatti, in OS161 quando viene chiamata la system call exit, il processo corrente viene segnalato come "terminato" e tutte le sue risorse vengono liberate, mentre in MINIX il processo corrente viene terminato e segnalato come "zombie". Un processo zombie è un processo che ha terminato l'esecuzione, ma il suo stato di terminazione non è ancora stato raccolto dal padre. Inoltre MINIX offre un meccanismo più sofisticato per la gestione dei processi figli, ovvero implementa un meccanismo chiamato "reaper". Il reaper è un processo separato che si occupa di raccogliere gli stati di terminazione dei processi figli zombie. Quando un processo padre richiede lo stato di terminazione di un processo figlio zombie, il reaper lo raccoglie e restituisce le informazioni appropriate al padre. OS161 invece non ha un meccanismo specifico per la gestione dei processi figli terminati.
+Entrambi i sistemi operativi implementano la system call _exit_ per terminare i processi correnti, ma in modo leggermente differente. Infatti, in _OS161_ quando viene chiamata la system call exit, il processo corrente viene segnalato come "terminato" e tutte le sue risorse vengono liberate, mentre in MINIX il processo corrente viene terminato e segnalato come "zombie". Un processo zombie è un processo che ha terminato l'esecuzione, ma il suo stato di terminazione non è ancora stato raccolto dal padre. Inoltre MINIX offre un meccanismo più sofisticato per la gestione dei processi figli, ovvero implementa un meccanismo chiamato "reaper". Il reaper è un processo separato che si occupa di raccogliere gli stati di terminazione dei processi figli zombie. Quando un processo padre richiede lo stato di terminazione di un processo figlio zombie, il reaper lo raccoglie e restituisce le informazioni appropriate al padre. OS161 invece non ha un meccanismo specifico per la gestione dei processi figli terminati.
 
 I prototipi nei due sistemi operativi risultano molto simili:
 
@@ -102,13 +102,20 @@ void sys_exit(int exitcode) {
 }
 ```
 
+In OS161 il parametro exitcode è il codice di uscita del processo che sta terminando e verrà restituito al processo genitore per indicare lo stato di terminazione del processo.
+
 ```c
 //MINIX
 int sys_exit() {
-    /* ... */
+  /* Un processo di sistema richiede di uscire. */
+  message m;
+
+  return(_kernel_call(SYS_EXIT, &m));
 }
 ```
-+ spiegare somiglianza ?
+In Minix la funzione utilizza una struttura dati denominata _message_ per comunicare con il kernel del sistema operativo. Il codice __kernel_call_ è utilizzato per invocare la system call di uscita del sistema (SYS_EXIT) passando la struttura _m_ come parametro.
+La funzione _sys_exit_ restituirà il valore ottenuto dalla system call di uscita del sistema, il quale può essere utilizzato per eseguire ulteriori azioni o per controllare se la terminazione del processo è avvenuta con successo.
+
 
 ### SYS_WAITPID ###
 
