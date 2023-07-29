@@ -19,11 +19,13 @@ Argomenti contro-parte OS:
 
 
 # Progetto 1.1: Analisi comparativa tra OS161 e altri sistemi operativi open-source all'avanguardia per sistemi embedded e computer general purpose
+
 Per questo progetto abbiamo scelto di analizzare _MINIX 3_, un sistema operativo open source simile a Unix, progettato per scopi didattici e di ricerca, altamente affidabile e portatile.
-_Minix_ è stato creato da Andrew S. Tanenbaum nel 1987 e da allora ha subito diverse revisioni importanti. Noi approfondiremo la versione 3.0 che è stato rilasciata nel 2005.
+_Minix_ è stato creato da Andrew S. Tanenbaum nel 1987 e da allora ha subito diverse revisioni importanti. Noi approfondiremo la versione 3.0 che è stata rilasciata nel 2005.
 
 Di seguito verranno esaminate nel dettaglio le sue caratteristiche e messe a confronto con il sistema operativo OS161, studiato durante il corso di Programmazione di Sistema.  
 
+# Sezione I: Analisi comparativa di OS161 e MINIX 3 #
 
 ## Architettura ##
 
@@ -31,7 +33,7 @@ _OS161_ è progettato come un sistema operativo monolitico, dove tutti i compone
 
 _MINIX_, nelle sue prime versioni, è stato un sistema operativo monolitico, ma con l'evoluzione verso MINIX 3, si è adottata un'architettura a microkernel con un design modulare. In un microkernel, le funzionalità del sistema operativo sono suddivise in moduli separati che vengono eseguiti nello spazio utente, riducendo così la complessità del kernel e aumentando la sicurezza e la stabilità. È scritto in linguaggio C e assembly e supporta diverse piattaforme hardware, tra cui x86, ARM.
 
-## Parte I: Comparazione System Calls ##
+## System Calls ##
 
 In generale le system calls dei due sistemi operativi non presentano grosse differenze, ma si differenziano su alcuni aspetti, quali: 
 1) **Architettura**: OS161 è basato su MIPS, mentre MINIX, essendo general purpose, può essere usato su varie architetture Hardware.
@@ -68,23 +70,24 @@ int sys_fork(parent, child, child_endpoint, flags, msgaddr)
     vir_bytes *msgaddr;
 {
     /* code */
-}
-- "endpoint_t parent" indica l'endpoint (ID di endpoint) del processo padre.
-- "endpoint_t child" indica  l'endpoint del nuovo processo figlio creato dalla chiamata fork.
-- "endpoint_t *child_endpoint" è un puntatore a un endpoint_t, e viene utilizzato per restituire l'endpoint del processo figlio al processo padre.
-- "u32_t flags" può essere utilizzata per indicare alcune opzioni o comportamenti desiderati per la fork.
-- "vir_bytes *msgaddr" rappresenta l'indirizzo in cui il messaggio viene passato tra il processo padre e il processo figlio dopo la fork. 
+} 
 ```
+
+- `endpoint_t parent` indica l'endpoint (ID di endpoint) del processo padre.
+- `endpoint_t child` indica  l'endpoint del nuovo processo figlio creato dalla chiamata fork.
+- `endpoint_t *child_endpoint` è un puntatore a un endpoint_t, e viene utilizzato per restituire l'endpoint del processo figlio al processo padre.
+- `u32_t flags` può essere utilizzata per indicare alcune opzioni o comportamenti desiderati per la fork.
+- `vir_bytes *msgaddr` rappresenta l'indirizzo in cui il messaggio viene passato tra il processo padre e il processo figlio dopo la fork.
+
+
 ```c
 // OS161
 pid_t sys_fork(struct trapframe *tf, int *retval) {
     /* code */
 }
-- "struct trapframe *tf"  è un puntatore a una struttura di dati chiamata "trapframe", che rappresenta lo stato del thread corrente nel momento in cui viene effettuata la chiamata di sistema "fork". Nella chiamata di sistema "fork", il trapframe contiene lo stato del thread corrente, che verrà duplicato nel nuovo processo creato.
-- "int *retval" è un puntatore a un intero (int), utilizzato per restituire il valore di ritorno della chiamata di sistema "fork". Il valore di ritorno sarà il PID (Process ID) del nuovo processo figlio nel processo padre e 0 nel processo figlio.
 ```
-
-### SYS_EXEC ###
+- `struct trapframe *tf` è un puntatore a una struttura di dati chiamata "trapframe", che rappresenta lo stato del thread corrente nel momento in cui viene effettuata la chiamata di sistema "fork". Nella chiamata di sistema "fork", il trapframe contiene lo stato del thread corrente, che verrà duplicato nel nuovo processo creato.
+- `int *retval` è un puntatore a un intero (int), utilizzato per restituire il valore di ritorno della chiamata di sistema "fork". Il valore di ritorno sarà il PID (Process ID) del nuovo processo figlio nel processo padre e 0 nel processo figlio.
 
 
 ### SYS_EXIT ###
@@ -116,18 +119,20 @@ int sys_exit() {
 In Minix la funzione utilizza una struttura dati denominata _message_ per comunicare con il kernel del sistema operativo. Il codice __kernel_call_ è utilizzato per invocare la system call di uscita del sistema (SYS_EXIT) passando la struttura _m_ come parametro.
 La funzione _sys_exit_ restituirà il valore ottenuto dalla system call di uscita del sistema, il quale può essere utilizzato per eseguire ulteriori azioni o per controllare se la terminazione del processo è avvenuta con successo.
 
+### SYS_EXEC ###
 
-### SYS_WAITPID ###
+
+### SYS_WAIT ###
 
 
 ### SYS_KILL ###
 
 
-## Parte II: Comparazione Scheduling ##
+## Scheduling ##
 
 ### Obiettivi ###
 
-_OS161_ e _MINIX 3_ hanno scopi e approcci diversi rispetto alla gestione dello scheduling dei processi. _OS161_ è principalmente un sistema operativo didattico per l'apprendimento dei concetti dei sistemi operativi con un'implementazione semplice. _MINIX 3_ è un sistema operativo di ricerca più completo che fornisce una pianificazione più sofisticata e adatta per scenari reali, adattandosi ad esigenze specifiche e ambienti diversi
+_OS161_ e _MINIX 3_ hanno scopi e approcci diversi rispetto alla gestione dello scheduling dei processi. _OS161_ è principalmente un sistema operativo didattico per l'apprendimento dei concetti dei sistemi operativi con un'implementazione semplice. _MINIX 3_ è un sistema operativo di ricerca più completo che fornisce una pianificazione più sofisticata e adatta per scenari reali, prestandosi bene ad esigenze specifiche e ambienti diversi.
 
 ### Politiche di Scheduling ###
 
@@ -141,19 +146,28 @@ _MINIX_ invece utilizza una politica di scheduling più sofisticata, chiamata Mu
 
 _OS161_ implementa l'algoritmo Round Robin, in cui ogni processo riceve un quantum di tempo assegnato e, quando il quantum scade, il processo viene messo in coda e viene eseguito il successivo processo pronto. Questo ciclo di esecuzione continua finchè ci sono processi nella coda pronti ad essere eseguiti. 
 
-In _Minix_ lo scheduling mantiene 16 code di priorità e viene realizzato mediante le procedure:
-- Enqueue
-- Dequeue
-- Sched
-- Pick proc: seleziona il primo processo disponibile nella ready queue di priorità più alta e non vuota. Il puntatore al PCB (protocol control bock) del processo viene inerito nella variabile next_ptr che sarà poi utilizzata dalla procedura restart.
++ to do: _aggiungere dettagli!!!!_
 
-+ _continuare!!!_
+In _Minix_ lo scheduling dei processi è gestito da un insieme di procedure che lavorano insieme per gestire le transizioni di stato e le priorità dei processi:
+- **Enqueue:** è responsabile di aggiungere un processo ad una specifica coda di scheduling in base alla sua priorità. Minix infatti utilizza un algoritmo di scheduling basato sulla priorità, dove i processi con una priorità più alta vengono eseguiti prima dei processi con priorità più bassa. La procedura _Enqueue_ si occupa di inserire un processo nella coda appropriata in base alla sua priorità e per poter svolgere questa operazione ha bisogno di conoscere:
+    - su quale ready queue attestare il processo
+    - se metterlo in testa o in coda
+    
+    Tali informazioni sono passate alla ready dalla funzione _sched_.
+
+- **Dequeue:** rimuove un processo da una specifica coda di scheduling quando non è più idoneo per l'esecuzione o deve essere sospeso per qualche motivo. Quando un processo viene rimosso dalla coda (dequeued), significa che è stato tolto dalla coda di scheduling e non può essere selezionato per l'esecuzione finché non viene nuovamente inserito (enqueued).
+- **Sched:** fondamentalmente rappresenta il "cuore" del meccanismo di scheduling in Minix. Essa determina quale processo deve essere eseguito successivamente, per cui è responsabile di selezionare il processo con la priorità più alta tra quelli presenti nelle code dei processi pronti. La procedura "Sched" viene chiamata periodicamente dal timer del kernel o da altri eventi di sistema per decidere quale processo dovrebbe ricevere il tempo di esecuzione della CPU.
+- **Pick proc:** seleziona il primo processo disponibile nella ready queue di priorità più alta, scandendo tutte le code. Il processo scelto verrà poi eseguito.
+
+Questo algoritmo di scheduling in Minix mira a fornire un accesso equo alla CPU per tutti i processi in base alle loro priorità. I processi con priorità più alta otterranno più tempo di CPU rispetto a quelli con priorità più bassa.
 
 ![Coda iniziale dei processi in Minix 3](./images/Ready_queue_minix.png)
+_Coda iniziale dei processi in Minix 3_
+
 
 ### Gestione delle priorità ###
 
-_Minix_ organizza i processi in sedici code di priorità su diversi livelli. Ogni processo viene inizialmente assegnato ad una coda di priorità in base alla sua categoria, che può essere task, driver, server o processo utente. La coda con priorità più bassa viene utilizzata solo da processo inattivo.
+_Minix_ organizza i processi in 16 code di priorità su diversi livelli. Ogni processo viene inizialmente assegnato ad una coda di priorità in base alla sua categoria, che può essere task, driver, server o processo utente. La coda con priorità più bassa viene utilizzata solo da processo inattivo.
 
 _Inizialmente, i processi utente hanno la priorità più alta rispetto ai processi di sistema, garantendo in questo modo che i processi utente vengano eseguiti con priorità maggiore. ?? ricontrollare_
 
@@ -173,7 +187,7 @@ In _OS161_, invece, l'esecuzione dello scheduler è attivata solo in presenza di
 + da fare
 
 
-## Parte III comparazione gestione di memoria ##
+## Gestione della memoria ##
 _Premessa: il sistema operativo MINIX è basato su architettura a Microkernel, il che semplifica la gestione del kernel e sposta, di conseguenza, le funzionalità più complesse in spazi utente chiamati "server" (es. gestione dei file system, gestione memoria virtuale etc...). Si ricorda anche che MINIX pre-3.1 non supporta paginazione (i processi sono allocati in maniera contigua all'interno della memoria), mentre dalla versione 3.2 supporta questa caratteristica._
 
 Andiamo adesso ad approfondire le differenze/somiglianze sulla gestione di memoria tra MINIX e OS161. 
@@ -201,7 +215,13 @@ In OS161, il "flusso" di gestione delle chiamate di sistema è pressochè simile
 
 _to be continued... ( + PM + ipotetiche conclusioni?)_
 
-## (TBD) Parte IV implementazione di nuove funzionalità  ##
+## Meccanismi di sincronizzazione ##
+
+(Spinlocks, semafori, condition variables, deadlock...) 
++ da fare!!
+
+
+# Sezione II: Implementazione di nuove funzionalità  #
 Scelte tre:
 
 1) Scheduler più avanzato: Se OS161 ha un scheduler con politiche di pianificazione avanzate (ad esempio, algoritmi di scheduling come Round Robin, Priority-based, etc.), potresti considerare di implementare una versione più avanzata di scheduler in MINIX per ottimizzare l'allocazione delle risorse del sistema.
