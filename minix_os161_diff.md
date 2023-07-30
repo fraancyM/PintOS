@@ -172,7 +172,7 @@ OS161 possiede un sistema più semplice e prevedibile, in cui, nella versione ba
 
 _Minix_ invece organizza i processi in 16 code di priorità su diversi livelli. Ogni processo viene inizialmente assegnato ad una coda di priorità in base alla sua categoria, che può essere task, driver, server o processo utente. I processi con priorità più alta si trovano nella coda 0 e quelli con priorità più bassa nella coda 15. Le code 0-6 sono riservate ai processi di sistema. Le code 7-14 sono riservate ai processi utente. Il processo inattivo è pianificato nella coda 15 e ha la priorità più bassa.
 
-![Scheduling queues in Minix 3](./images/Priority.png)
+![Scheduling queues in Minix 3](./images/priority.png)
 _Scheduling queues in Minix 3_
 
 Quando deve essere scelto un nuovo processo da eseguire, si cerca il processo a partire dalla coda più alta. Se non ci sono processi pronti, viene eseguito il processo inattivo. 
