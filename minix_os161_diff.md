@@ -33,6 +33,8 @@ _OS161_ è progettato come un sistema operativo monolitico, dove tutti i compone
 
 _MINIX_, nelle sue prime versioni, è stato un sistema operativo monolitico, ma con l'evoluzione verso MINIX 3, si è adottata un'architettura a microkernel con un design modulare. In un microkernel, le funzionalità del sistema operativo sono suddivise in moduli separati che vengono eseguiti nello spazio utente, riducendo così la complessità del kernel e aumentando la sicurezza e la stabilità. È scritto in linguaggio C e assembly e supporta diverse piattaforme hardware, tra cui x86, ARM.
 
+![Architettura microkernel di Minix 3](./images/The_MINIX_3_Architecture.png)
+
 ## System Calls ##
 
 In generale le system calls dei due sistemi operativi non presentano grosse differenze, ma si differenziano su alcuni aspetti, quali: 
@@ -92,9 +94,11 @@ pid_t sys_fork(struct trapframe *tf, int *retval) {
 
 ### SYS_EXIT ###
 
-La system call EXIT è una chiamata di sistema utilizzata per terminare un processo in un sistema operativo. Quando un programma chiama la funzione _exit_, il processo corrente viene terminato e le risorse associate ad esso, come la memoria, i file aperti e altre risorse di sistema, vengono rilasciate. Prima di terminare il processo viene di solito restituito un valore di uscita al chiamante, che può essere recuperato dal processo padre o dal sistema operativo e utilizzato per valutare lo stato di terminazione del processo.
+La system call EXIT è una chiamata di sistema utilizzata per terminare un processo in un sistema operativo. Quando un programma chiama la funzione `exit`, il processo corrente viene terminato e le risorse associate ad esso, come la memoria, i file aperti e altre risorse di sistema, vengono rilasciate. Prima di terminare il processo viene di solito restituito un valore di uscita al chiamante, che può essere recuperato dal processo padre o dal sistema operativo e utilizzato per valutare lo stato di terminazione del processo.
 
-Entrambi i sistemi operativi implementano la system call _exit_ per terminare i processi correnti, ma in modo leggermente differente. Infatti, in _OS161_ quando viene chiamata la system call exit, il processo corrente viene segnalato come "terminato" e tutte le sue risorse vengono liberate, mentre in MINIX il processo corrente viene terminato e segnalato come "zombie". Un processo zombie è un processo che ha terminato l'esecuzione, ma il suo stato di terminazione non è ancora stato raccolto dal padre. Inoltre MINIX offre un meccanismo più sofisticato per la gestione dei processi figli, ovvero implementa un meccanismo chiamato "reaper". Il reaper è un processo separato che si occupa di raccogliere gli stati di terminazione dei processi figli zombie. Quando un processo padre richiede lo stato di terminazione di un processo figlio zombie, il reaper lo raccoglie e restituisce le informazioni appropriate al padre. OS161 invece non ha un meccanismo specifico per la gestione dei processi figli terminati.
+Nella versione base di OS161, manca il supporto per la system call `exit`, infatti al termine di un programma (fine del main) si possono verificare crash del sistema, in quanto non esiste supporto per tale operazione. L'implementazione della system call è stata gestita durante i laboratori del corso di Programmazione di Sistema, in modo da segnalare il processo corrente come _terminato_ e liberare tutte le sue risorse. 
+
+In MINIX, il processo corrente viene terminato e segnalato come "zombie". Un processo zombie è un processo che ha terminato l'esecuzione, ma il suo stato di terminazione non è ancora stato raccolto dal padre. Inoltre MINIX offre un meccanismo più sofisticato per la gestione dei processi figli, ovvero implementa un meccanismo chiamato _reaper_. Il reaper è un processo separato che si occupa di raccogliere gli stati di terminazione dei processi figli zombie. Quando un processo padre richiede lo stato di terminazione di un processo figlio zombie, il reaper lo raccoglie e restituisce le informazioni appropriate al padre. OS161 invece non ha un meccanismo specifico per la gestione dei processi figli terminati.
 
 I prototipi nei due sistemi operativi risultano molto simili:
 
@@ -105,7 +109,7 @@ void sys_exit(int exitcode) {
 }
 ```
 
-In OS161 il parametro exitcode è il codice di uscita del processo che sta terminando e verrà restituito al processo genitore per indicare lo stato di terminazione del processo.
+In OS161 il parametro `exitcode` è il codice di uscita del processo che sta terminando e verrà restituito al processo genitore per indicare lo stato di terminazione del processo.
 
 ```c
 //MINIX
@@ -116,13 +120,13 @@ int sys_exit() {
   return(_kernel_call(SYS_EXIT, &m));
 }
 ```
-In Minix la funzione utilizza una struttura dati denominata _message_ per comunicare con il kernel del sistema operativo. Il codice __kernel_call_ è utilizzato per invocare la system call di uscita del sistema (SYS_EXIT) passando la struttura _m_ come parametro.
-La funzione _sys_exit_ restituirà il valore ottenuto dalla system call di uscita del sistema, il quale può essere utilizzato per eseguire ulteriori azioni o per controllare se la terminazione del processo è avvenuta con successo.
+In Minix la funzione utilizza una struttura dati denominata `message` per comunicare con il kernel del sistema operativo. Il codice `_kernel_call` è utilizzato per invocare la system call di uscita del sistema (SYS_EXIT) passando la struttura `m` come parametro.
+La funzione `sys_exit` restituirà il valore ottenuto dalla system call di uscita del sistema, il quale può essere utilizzato per eseguire ulteriori azioni o per controllare se la terminazione del processo è avvenuta con successo.
 
 ### SYS_EXEC ###
 
 
-### SYS_WAIT ###
+### SYS_WAITPID ###
 
 
 ### SYS_KILL ###
@@ -132,7 +136,7 @@ La funzione _sys_exit_ restituirà il valore ottenuto dalla system call di uscit
 
 ### Obiettivi ###
 
-_OS161_ e _MINIX 3_ hanno scopi e approcci diversi rispetto alla gestione dello scheduling dei processi. _OS161_ è principalmente un sistema operativo didattico per l'apprendimento dei concetti dei sistemi operativi con un'implementazione semplice. _MINIX 3_ è un sistema operativo di ricerca più completo che fornisce una pianificazione più sofisticata e adatta per scenari reali, prestandosi bene ad esigenze specifiche e ambienti diversi.
+_OS161_ e _MINIX 3_ sono entrambi sistemi operativi utilizzati per scopi didattici, ma presentano approcci diversi rispetto alla gestione dello scheduling dei processi. _OS161_ è principalmente un sistema operativo didattico per l'apprendimento dei concetti dei sistemi operativi con un'implementazione semplice. _MINIX 3_ è un sistema operativo di ricerca più completo che fornisce una pianificazione più sofisticata e adatta per scenari reali, prestandosi bene ad esigenze specifiche e ambienti diversi.
 
 ### Politiche di Scheduling ###
 
@@ -140,13 +144,11 @@ Le politiche di scheduling di _OS161_ e _MINIX 3_ risultano diverse avendo obiet
 
 In particolare, _OS161_ utilizza una politica di scheduling semplice e predefinita basata sull'approccio Round Robin (RR), dove i processi vengono assegnati in base al loro ordine di arrivo. Inoltre, non è possibile implementare politiche di scheduling personalizzate poiché l'allocazione del tempo della CPU è principalmente gestita dal kernel per ragioni di sicurezza e stabilità.
 
-_MINIX_ invece utilizza una politica di scheduling più sofisticata, chiamata Multilevel Feedback Queue (MFQ). L'algoritmo MFQ prevede l'esistenza di più code con diversi livelli di priorità. I processi vengono inizialmente inseriti nella coda di priorità più alta e se un processo utilizza tutto il suo quantum di tempo senza terminare, viene degradato nella coda di priorità inferiore. D'altra parte, se un processo è bloccato o termina prima di utilizzare tutto il suo quantum, viene promosso alla coda di priorità superiore. Questa politica offre maggiore flessibilità e consente agli sviluppatori di definire algoritmi di scheduling specifici per gruppi di processi con esigenze diverse o applicazioni particolari.
+_MINIX_ invece utilizza una politica di scheduling più sofisticata, chiamata Multilevel Feedback Queue (MFQ). L'algoritmo MFQ prevede l'esistenza di più code con diversi livelli di priorità. A differenza di OS161, le priorità non sono fisse, infatti i processi vengono inizialmente inseriti nella coda di priorità più alta e se un processo utilizza tutto il suo quantum di tempo senza terminare, viene degradato nella coda di priorità inferiore. D'altra parte, se un processo è bloccato o termina prima di utilizzare tutto il suo quantum, viene promosso alla coda di priorità superiore. Questa politica offre maggiore flessibilità e consente agli sviluppatori di definire algoritmi di scheduling specifici per gruppi di processi con esigenze diverse o applicazioni particolari.
 
 ### Implementazione ###
 
-_OS161_ implementa l'algoritmo Round Robin, in cui ogni processo riceve un quantum di tempo assegnato e, quando il quantum scade, il processo viene messo in coda e viene eseguito il successivo processo pronto. Questo ciclo di esecuzione continua finchè ci sono processi nella coda pronti ad essere eseguiti. 
-
-+ to do: _aggiungere dettagli!!!!_
+_OS161_ implementa l'algoritmo Round Robin con una singola coda, in cui ogni processo riceve un quantum di tempo assegnato e, quando il quantum scade, il processo viene messo in coda e viene eseguito il successivo processo pronto. Questo ciclo di esecuzione continua finchè ci sono processi nella coda pronti ad essere eseguiti. 
 
 In _Minix_ lo scheduling dei processi è gestito da un insieme di procedure che lavorano insieme per gestire le transizioni di stato e le priorità dei processi:
 - **Enqueue:** è responsabile di aggiungere un processo ad una specifica coda di scheduling in base alla sua priorità. Minix infatti utilizza un algoritmo di scheduling basato sulla priorità, dove i processi con una priorità più alta vengono eseguiti prima dei processi con priorità più bassa. La procedura _Enqueue_ si occupa di inserire un processo nella coda appropriata in base alla sua priorità e per poter svolgere questa operazione ha bisogno di conoscere:
@@ -164,27 +166,27 @@ Questo algoritmo di scheduling in Minix mira a fornire un accesso equo alla CPU 
 ![Coda iniziale dei processi in Minix 3](./images/Ready_queue_minix.png)
 _Coda iniziale dei processi in Minix 3_
 
-
 ### Gestione delle priorità ###
 
-_Minix_ organizza i processi in 16 code di priorità su diversi livelli. Ogni processo viene inizialmente assegnato ad una coda di priorità in base alla sua categoria, che può essere task, driver, server o processo utente. La coda con priorità più bassa viene utilizzata solo da processo inattivo.
+OS161 possiede un sistema più semplice e prevedibile, in cui, nella versione base, non esiste il concetto di priorità. Ciò significa che un processo continuerà ad essere eseguito finché non avrà terminato la sua esecuzione, indipendentemente dai requisiti di CPU di altri processi.
 
-_Inizialmente, i processi utente hanno la priorità più alta rispetto ai processi di sistema, garantendo in questo modo che i processi utente vengano eseguiti con priorità maggiore. ?? ricontrollare_
+_Minix_ invece organizza i processi in 16 code di priorità su diversi livelli. Ogni processo viene inizialmente assegnato ad una coda di priorità in base alla sua categoria, che può essere task, driver, server o processo utente. I processi con priorità più alta si trovano nella coda 0 e quelli con priorità più bassa nella coda 15. Le code 0-6 sono riservate ai processi di sistema. Le code 7-14 sono riservate ai processi utente. Il processo inattivo è pianificato nella coda 15 e ha la priorità più bassa.
 
-Tuttavia, lo scheduler può modificare la priorità del processo e il quantum temporale mediante sys_schedule(), rendendo nuovamente eseguibile il processo. Inoltre, se un processo utilizza troppo tempo della CPU, la sua priorità può essere temporaneamente ridotta per garantire che altri processi abbiano la possibilità di essere eseguiti.
+![Scheduling queues in Minix 3](./images/Priority.png)
+_Scheduling queues in Minix 3_
 
-+ fare confronto con _OS161_ 
-
+Quando deve essere scelto un nuovo processo da eseguire, si cerca il processo a partire dalla coda più alta. Se non ci sono processi pronti, viene eseguito il processo inattivo. 
+Tuttavia, lo scheduler può modificare la priorità del processo e il quantum temporale mediante sys_schedule(), rendendo nuovamente eseguibile il processo. Per questo motivo, possiamo dire che Minix possiede una gestione dello scheduling più dinamica rispetto a OS161. Inoltre, Minix 3 utilizza un meccanismo di invecchiamento che aumenta gradualmente la priorità dei processi che non sono stati eseguiti per un lungo periodo di tempo. Se, invece, un processo utilizza troppo tempo della CPU, la sua priorità può essere temporaneamente ridotta per garantire che altri processi abbiano la possibilità di essere eseguiti.
 
 ### La gestione delle interruzioni ###
 
-_Minix 3_ utilizza un approccio di scheduling pre-emptive, ovvero il sistema operativo può interrompere l'esecuzione di un processo per eseguire un altro processo con priorità più alta e garantire che i processi a priorità più elevata vengano eseguiti in modo tempestivo. Nello specifico, quando un'interfaccia di input/output (I/O) completa un'operazione, genera un'interruzione che viene ricevuta dal kernel. Il kernel a quel punto interrompe il processo che stava attendendo, salvando lo stato attuale, e risponde all'interfaccia di I/O, solitamente attraverso l'invio di un messaggio al processo interessato per avvisarlo che i dati sono disponibili. Tuttavia, la gestione delle interruzioni può portare a problemi di sincronizzazione se non viene gestita correttamente. Per evitare tali problemi, viene utilizzato un approccio di scheduling cooperativo. In particolare, lo scheduler viene eseguito solo quando viene generata un'interfaccia di sistema o un'interruzione di clock. In questo modo, lo scheduler viene eseguito solo in momenti specifici dell'esecuzione del sistema operativo, evitando così problemi di sincronizzazione. Questa implementazione garantisce una maggiore affidabilità anche in presenza di processi ad alta priorità o di interruzioni di sistema.
+_OS161_ ha un semplice sistema di gestione delle interruzioni, in cui le routine di servizio delle interruzioni salvano lo stato del processo corrente, eseguono il gestore di interruzioni ed infine ripristinano lo stato del processo. Questo approccio è facile da implementare, ma non è molto flessibile e può portare a latenze di interruzioni elevate se si verificano molte interruzioni in successione.
 
-In _OS161_, invece, l'esecuzione dello scheduler è attivata solo in presenza di un'interfaccia di sistema o un'interfaccia di timer. 
-+ _continuare_
+_Minix 3_ invece possiede un sistema di gestione delle interruzioni più sofisticato. Ogni dispositivo ha un proprio thread di servizio delle interruzioni, che è responsabile del trattamento delle interruzioni per quel dispositivo. Questo approccio migliora l'affidabilità del sistema, poiché un errore nel thread di servizio delle interruzioni di un dispositivo non influisce sugli altri dispositivi.
+Inoltre viene utilizzato un approccio di scheduling pre-emptive, ovvero il sistema operativo può interrompere l'esecuzione di un processo per eseguire un altro processo con priorità più alta e garantire che i processi a priorità più elevata vengano eseguiti in modo tempestivo. Nello specifico, quando un'interfaccia di input/output (I/O) completa un'operazione, genera un'interruzione che viene ricevuta dal kernel. Il kernel a quel punto interrompe il processo che stava attendendo, salvando lo stato attuale, e risponde all'interfaccia di I/O, solitamente attraverso l'invio di un messaggio al processo interessato per avvisarlo che i dati sono disponibili. Tuttavia, la gestione delle interruzioni può portare a problemi di sincronizzazione se non viene gestita correttamente. Per evitare tali problemi, viene utilizzato un approccio di scheduling cooperativo. In particolare, lo scheduler viene eseguito solo quando viene generata un'interfaccia di sistema o un'interruzione di clock. In questo modo, lo scheduler viene eseguito solo in momenti specifici dell'esecuzione del sistema operativo, evitando così problemi di sincronizzazione. Questa implementazione garantisce una maggiore affidabilità anche in presenza di processi ad alta priorità o di interruzioni di sistema.
 
 ### Conclusioni ###
-+ da fare
+In conclusione, entrambi i sistemi operativi hanno i loro vantaggi e svantaggi. L'approccio di scheduling di MINIX 3 è più flessibile e sofisticato rispetto a quello di OS161, poiché consente di gestire in modo più preciso le priorità dei processi e di evitare problemi di sincronizzazione. Tuttavia, OS161 rimane un'opzione valida per l'apprendimento e la comprensione dei concetti dei sistemi operativi grazie alla sua semplicità e alla sua implementazione didattica.
 
 
 ## Gestione della memoria ##
