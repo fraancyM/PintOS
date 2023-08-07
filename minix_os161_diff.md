@@ -31,9 +31,16 @@ Di seguito verranno esaminate nel dettaglio le sue caratteristiche e messe a con
 
 _OS161_ è progettato come un sistema operativo monolitico, dove tutti i componenti chiave, come il kernel e i driver dei dispositivi, risiedono in uno spazio di indirizzamento comune.
 
-_MINIX_, nelle sue prime versioni, è stato un sistema operativo monolitico, ma con l'evoluzione verso MINIX 3, si è adottata un'architettura a microkernel con un design modulare. In un microkernel, le funzionalità del sistema operativo sono suddivise in moduli separati che vengono eseguiti nello spazio utente, riducendo così la complessità del kernel e aumentando la sicurezza e la stabilità. È scritto in linguaggio C e assembly e supporta diverse piattaforme hardware, tra cui x86, ARM.
+_MINIX_, nelle sue prime versioni, è stato un sistema operativo monolitico, ma con l'evoluzione verso Minix 3, si è adottata un'architettura a microkernel con un design modulare strutturato in quattro livelli, ognuno dei quali svolge una funzione ben definita. In un microkernel, le funzionalità del sistema operativo sono suddivise in moduli separati che vengono eseguiti nello spazio utente, riducendo così la complessità del kernel e aumentando la sicurezza e la stabilità.
 
-![Architettura microkernel di Minix 3](./images/The_MINIX_3_Architecture.png)
+![Architettura microkernel di Minix 3](./images/minix_architettura.png)
+
+I tre livelli sopra il kernel potrebbero essere considerati come un unico livello perché il kernel li tratta tutti allo stesso modo. Ognuno di essi è limitato alle istruzioni in modalità utente e nessuno di essi può accedere direttamente alle porte di I/O o alla memoria al di fuori dei segmenti ad essi assegnati Tuttavia, le vera differenza tra i processi nei livelli 2, 3, 4 consiste nel possedere privilegi speciali (come la capacità di effettuare chiamate di sistema privilegiate). 
+
+Nello specifico, i processi nel livello 2 hanno i privilegi più elevati, quelli nel livello 3 hanno alcuni privilegi e quelli nel livello 4 non possiedono privilegi speciali. Ad esempio, i processi nel livello 2, chiamati driver di dispositivo, possono richiedere al system task di leggere dati dalle porte di I/O o di scriverli per loro conto. Un driver è necessario per ogni tipo di dispositivo, inclusi dischi, stampanti, terminali e interfacce di rete. Se sono presenti altri dispositivi di I/O, è necessario un driver per ognuno di essi. I driver di dispositivo possono anche effettuare altre chiamate di sistema del kernel, come richiedere la copia di dati appena letti nello spazio di indirizzamento di un processo diverso.
+
+Il terzo livello, invece, contiene i server, ovvero i processi che forniscono servizi utili ai processi utente. Sono fondamentali due server: il process manager (PM) che gestisce tutte le chiamate di sistema di Minix 3 che coinvolgono l'avvio o l'arresto dell'esecuzione dei processi, come fork, exec ed exit, nonché le chiamate di sistema relative ai segnali, come alarm e kill, che possono modificare lo stato di esecuzione di un processo.
+
 
 ## System Calls ##
 
