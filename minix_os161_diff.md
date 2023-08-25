@@ -226,6 +226,23 @@ _to be continued... ( + PM + ipotetiche conclusioni?)_
 
 ## Meccanismi di sincronizzazione ##
 
+### Problemi della programmazione concorrente ###
+
+Una **critical section** è un concetto fondamentale nell'ambito della programmazione concorrente e parallela. Rappresenta una porzione di codice in un programma in cui viene eseguita un'operazione che coinvolge risorse condivise, come variabili o strutture dati, che possono essere accessibili da più thread o processi contemporaneamente. L'obiettivo principale della protezione di una critical section è garantire la correttezza e l'integrità dei dati, evitando situazioni di accesso concorrente che potrebbero portare a risultati indesiderati o inconsistenze.
+
+I **meccanismi di sincronizzazione** fungono da ponti tra i thread o i processi, permettendo loro di coordinarsi e collaborare nell'accesso alle risorse condivise.
+
+I problemi principali che possono sorgere in relazione alle critical section sono:
+
+1. **Race Condition**:  si verifica quando due o più thread o processi cercano di accedere contemporaneamente alla stessa risorsa condivisa senza sincronizzazione adeguata. Questo può portare a risultati imprevedibili o errati poiché l'ordine di esecuzione delle istruzioni non è garantito.
+2. **Deadlock**: si verifica quando due o più thread o processi si bloccano reciprocamente, ciascuno aspettando che una risorsa venga rilasciata dall'altro. In altre parole, si crea una situazione in cui nessun thread può procedere, impedendo il completamento dell'esecuzione.
+3. **Starvation**: si verifica quando un thread viene continuamente prevenuto dall'accedere a una risorsa condivisa da altri thread che la monopolizzano. Ciò potrebbe portare a un'inefficienza complessiva del sistema, poiché alcuni thread potrebbero essere costantemente trascurati.
+4. **Livelock**: è una situazione simile al deadlock, ma in questo caso i thread non sono bloccati completamente; invece, sono in uno stato attivo e in continuo scambio di risorse, ma senza alcun progresso reale nell'esecuzione.
+Le critical section sono quindi parti cruciali di un programma in cui l'accesso concorrente alle risorse condivise deve essere attentamente gestito per garantire la correttezza e l'affidabilità del software.
+
+
+
+
 (Spinlocks, semafori, condition variables, deadlock...) 
 + da fare!!
 
