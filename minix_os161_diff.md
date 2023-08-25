@@ -230,8 +230,6 @@ _to be continued... ( + PM + ipotetiche conclusioni?)_
 
 Una **critical section** è un concetto fondamentale nell'ambito della programmazione concorrente e parallela. Rappresenta una porzione di codice in un programma in cui viene eseguita un'operazione che coinvolge risorse condivise, come variabili o strutture dati, che possono essere accessibili da più thread o processi contemporaneamente. L'obiettivo principale della protezione di una critical section è garantire la correttezza e l'integrità dei dati, evitando situazioni di accesso concorrente che potrebbero portare a risultati indesiderati o inconsistenze.
 
-I **meccanismi di sincronizzazione** fungono da ponti tra i thread o i processi, permettendo loro di coordinarsi e collaborare nell'accesso alle risorse condivise.
-
 I problemi principali che possono sorgere in relazione alle critical section sono:
 
 1. **Race Condition**:  si verifica quando due o più thread o processi cercano di accedere contemporaneamente alla stessa risorsa condivisa senza sincronizzazione adeguata. Questo può portare a risultati imprevedibili o errati poiché l'ordine di esecuzione delle istruzioni non è garantito.
@@ -240,7 +238,25 @@ I problemi principali che possono sorgere in relazione alle critical section son
 4. **Livelock**: è una situazione simile al deadlock, ma in questo caso i thread non sono bloccati completamente; invece, sono in uno stato attivo e in continuo scambio di risorse, ma senza alcun progresso reale nell'esecuzione.
 Le critical section sono quindi parti cruciali di un programma in cui l'accesso concorrente alle risorse condivise deve essere attentamente gestito per garantire la correttezza e l'affidabilità del software.
 
+I **meccanismi di sincronizzazione** fungono da ponti tra i thread o i processi, permettendo loro di coordinarsi e collaborare nell'accesso alle risorse condivise. 
+I principali meccanismi di sincronizzazione sono: Mutex, Semaphore, Locks e Condition Variables.
 
+### Mutex e Spinlock ###
+
+Sia MINIX3 che OS161 condividono parti comuni nella gestione di **Mutex** e **Spinlock**. Innanzitutto, definiscono strutture di dati specializzate che contengono informazioni cruciali, come lo **stato del lock** e l'**identificatore** del thread/processo detentore. Inoltre, entrambi offrono funzionalità per l'inizializzazione di questi meccanismi, consentendo di configurare adeguatamente le loro proprietà iniziali.
+L'**acquisizione** dei mutex o spinlock è un altro aspetto comune: entrambi i sistemi forniscono funzioni attraverso le quali un thread o un processo può richiedere l'accesso esclusivo a una risorsa condivisa. Nel caso in cui il lock sia già detenuto, il thread/processo richiedente dovrà attendere fino a quando il lock non sarà rilasciato.
+Il **rilascio** è altrettanto importante: una volta che un thread o processo ha terminato di utilizzare una risorsa condivisa, è cruciale rilasciare il lock corrispondente per permettere ad altri thread/processi in attesa di accedere alla risorsa.
+
+MINIX 3 adotta un approccio flessibile con i mutex **Adaptive** e **Spin**.
+•	**Adaptive**: se il mutex è già acquisito da un thread, quello che sta cercando di acquisirlo determina se il thread che lo detiene è in esecuzione. In tal caso, il thread aspetta attivamente (spin), altrimenti va in stato di attesa (sleep).
+Questa flessibilità consente una scelta tra attesa attiva e passiva in base alle esigenze, e il sistema gestisce attivamente situazioni in cui i thread in attesa devono decidere quale approccio adottare.
+•	**Spin**:  se il mutex è già acquisito da un thread, quello che sta cercando di acquisirlo aspetta attivamente (spin). Durante questo periodo, viene innalzata la priorità del processore (IPL).
+
+OS161 si focalizza su **spinlock con attesa attiva**.
+
+•	Possono essere molto efficienti in termini di prestazioni, poiché i thread non vengono effettivamente sospesi quando non hanno accesso alla risorsa.
+•	Questo è particolarmente vantaggioso in ambienti multiprocessore, dove l'efficienza è prioritaria e l'attesa passiva potrebbe non essere ottimale. 
+•	OS161 implementa controlli avanzati, inclusi quelli per il rilevamento dei deadlock tramite un campo specifico all'interno delle strutture dei spinlock.
 
 
 (Spinlocks, semafori, condition variables, deadlock...) 
