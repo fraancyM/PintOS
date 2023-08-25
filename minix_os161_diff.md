@@ -248,14 +248,18 @@ L'**acquisizione** dei mutex o spinlock è un altro aspetto comune: entrambi i s
 Il **rilascio** è altrettanto importante: una volta che un thread o processo ha terminato di utilizzare una risorsa condivisa, è cruciale rilasciare il lock corrispondente per permettere ad altri thread/processi in attesa di accedere alla risorsa.
 
 MINIX 3 adotta un approccio flessibile con i mutex **Adaptive** e **Spin**.
+
 •	**Adaptive**: se il mutex è già acquisito da un thread, quello che sta cercando di acquisirlo determina se il thread che lo detiene è in esecuzione. In tal caso, il thread aspetta attivamente (spin), altrimenti va in stato di attesa (sleep).
 Questa flessibilità consente una scelta tra attesa attiva e passiva in base alle esigenze, e il sistema gestisce attivamente situazioni in cui i thread in attesa devono decidere quale approccio adottare.
+
 •	**Spin**:  se il mutex è già acquisito da un thread, quello che sta cercando di acquisirlo aspetta attivamente (spin). Durante questo periodo, viene innalzata la priorità del processore (IPL).
 
 OS161 si focalizza su **spinlock con attesa attiva**.
 
 •	Possono essere molto efficienti in termini di prestazioni, poiché i thread non vengono effettivamente sospesi quando non hanno accesso alla risorsa.
+
 •	Questo è particolarmente vantaggioso in ambienti multiprocessore, dove l'efficienza è prioritaria e l'attesa passiva potrebbe non essere ottimale. 
+
 •	OS161 implementa controlli avanzati, inclusi quelli per il rilevamento dei deadlock tramite un campo specifico all'interno delle strutture dei spinlock.
 
 
