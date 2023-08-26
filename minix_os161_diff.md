@@ -295,7 +295,23 @@ Le operazioni principali sono:
 Un aspetto distintivo dell'implementazione di OS161 è l'utilizzo di **code di attesa** per i semafori, associando a ciascun semaforo una coda che struttura le attese dei processi in modo ordinato. 
 Inoltre, il sistema introduce anche il concetto di **locks**: analoghi ai semafori binari, ma specificamente utilizzati per garantire l'esclusione mutua tra processi.
 In OS161 sono implementati anche i **semafori interrupt-based**, che utilizzano interruzioni per notificare ai thread i cambiamenti di stato. Questo approccio evita il consumo energetico associato alla pratica del "busy waiting", migliorando l'efficienza delle attese.
+
 In sintesi, mentre MINIX 3 aderisce alle specifiche POSIX con l'uso di semafori numerici e offre funzioni come "sem_timedwait()" per attese limitate nel tempo, OS161 presenta un'implementazione più flessibile con semafori di conteggio e semafori binari supportati da code di attesa. Inoltre, OS161 si distingue per l'introduzione dei "semafori interrupt-based" e dei "locks" per una migliore gestione della mutua esclusione.
+
+### Condition variables ###
+
+Le **Condition Variables** sono strumenti per la sincronizzazione che consentono ai thread di coordinarsi in base a condizioni specifiche, garantendo l'accesso sicuro alle risorse condivise, sia nel contesto di Minix 3 che in OS/161.
+
+Nel sistema operativo Minix 3, le variabili di condizione sono implementate come strutture dati speciali contenenti un valore booleano e un elenco di thread sospesi. 
+•	Quando un thread esegue l'operazione **wait()** su una variabile di condizione, il suo valore booleano viene impostato a falso e il thread stesso viene sospeso.
+L'operazione **wait()** restituisce un valore booleano indicante se la condizione è stata soddisfatta prima della sospensione del thread. La condizione è considerata soddisfatta quando il valore booleano della variabile di condizione diventa vero. 
+•	L'operazione **signal()** viene utilizzata per cambiare il valore booleano a vero e risvegliare il primo thread sospeso. Nel caso in cui non ci siano thread sospesi, **signal()** non ha effetto. La funzione **broadcast()** è simile a **signal()**, ma risveglia tutti i thread sospesi sulla variabile di condizione.
+
+In OS161, un'implementazione _simile alle variabili di condizione_ è realizzata attraverso l'uso di **Wait channels**.
+Un **Wait channel** è concettualmente affine a una variabile di condizione e permette ai thread di attendere attivamente finché una certa condizione non è soddisfatta. 
+
+Sia Minix 3 che OS161 adottano approcci simili per l'utilizzo delle variabili di condizione nell'ambito della sincronizzazione dei thread. Entrambi i sistemi permettono ai thread di attendere il soddisfacimento di condizioni specifiche e di coordinarsi in modo sicuro. La principale differenza riguarda l'implementazione interna: Minix 3 utilizza strutture dati contenenti valori booleani e thread sospesi, mentre OS161 si basa sui "wait channels" per raggiungere lo stesso obiettivo di sincronizzazione.
+
 
 
 (Spinlocks, semafori, condition variables, deadlock...) 
