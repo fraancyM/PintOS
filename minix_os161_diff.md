@@ -303,8 +303,11 @@ In sintesi, mentre MINIX 3 aderisce alle specifiche POSIX con l'uso di semafori 
 Le **Condition Variables** sono strumenti per la sincronizzazione che consentono ai thread di coordinarsi in base a condizioni specifiche, garantendo l'accesso sicuro alle risorse condivise, sia nel contesto di Minix 3 che in OS/161.
 
 Nel sistema operativo Minix 3, le variabili di condizione sono implementate come strutture dati speciali contenenti un valore booleano e un elenco di thread sospesi. 
+
 •	Quando un thread esegue l'operazione **wait()** su una variabile di condizione, il suo valore booleano viene impostato a falso e il thread stesso viene sospeso.
+
 L'operazione **wait()** restituisce un valore booleano indicante se la condizione è stata soddisfatta prima della sospensione del thread. La condizione è considerata soddisfatta quando il valore booleano della variabile di condizione diventa vero. 
+
 •	L'operazione **signal()** viene utilizzata per cambiare il valore booleano a vero e risvegliare il primo thread sospeso. Nel caso in cui non ci siano thread sospesi, **signal()** non ha effetto. La funzione **broadcast()** è simile a **signal()**, ma risveglia tutti i thread sospesi sulla variabile di condizione.
 
 In OS161, un'implementazione _simile alle variabili di condizione_ è realizzata attraverso l'uso di **Wait channels**.
