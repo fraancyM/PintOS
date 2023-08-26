@@ -130,14 +130,34 @@ int sys_exit() {
 In Minix la funzione utilizza una struttura dati denominata `message` per comunicare con il kernel del sistema operativo. Il codice `_kernel_call` è utilizzato per invocare la system call di uscita del sistema (SYS_EXIT) passando la struttura `m` come parametro.
 La funzione `sys_exit` restituirà il valore ottenuto dalla system call di uscita del sistema, il quale può essere utilizzato per eseguire ulteriori azioni o per controllare se la terminazione del processo è avvenuta con successo.
 
-### SYS_EXEC ###
-
 
 ### SYS_WAITPID ###
 
+La system call WAITPID è una chiamata di sistema utilizzata per gestire i processi e _monitorare la loro terminazione_ in un sistema operativo. Quando un processo genitore desidera attendere che un processo figlio termini la sua esecuzione, può utilizzare la chiamata di sistema waitpid per ottenere informazioni sullo stato di uscita del processo figlio.
+Nella versione base di OS161 manca il supporto per la syscall `waitpid`, che comporta vari problemi tra cui: 
+•	**mancata sincronizzazione**: la syscall `waitpid` consente al processo genitore di sincronizzarsi con l'esecuzione dei processi figli. Senza questa sincronizzazione, potrebbe essere difficile coordinare il flusso di esecuzione e l'ordinamento delle operazioni tra processi genitori e figli
 
-### SYS_KILL ###
+•	**processi zombie**: il processo genitore non può raccogliere le informazioni sullo stato dei suoi processi figli una volta che sono terminati. Questo può portare alla creazione di processi "zombie", che sono processi che hanno terminato l'esecuzione ma mantengono una voce nella tabella dei processi fino a quando il processo genitore non raccoglie le informazioni sul loro stato.
 
+•	**Memoria e gestione delle risorse**: Senza la possibilità di raccogliere lo stato dei processi figli, il processo genitore non può liberare completamente le risorse allocate per quei processi. Ciò potrebbe portare a una gestione inefficiente delle risorse di sistema, con eventuali degradi delle prestazioni e esaurimento delle risorse disponibili.
+
+L'implementazione della system call è stata gestita durante i laboratori del corso di Programmazione di Sistema, in modo da poter attendere che un processo figlio specifico termini l'esecuzione, il valore di ritorno di questa chiamata di sistema viene gestito per gestire eventuali errori.
+
+```c
+//OS161
+int sys_waitpid((pid_t)tf->tf_a0, (userptr_t)tf->tf_a1, (int)tf->tf_a2) {
+    /* ... */
+}
+```
+
+- `(pid_t)tf->tf_a0`: Il registro `tf_a0` del `trapframe` contiene il PID del processo figlio da attendere. Viene convertito in un tipo `pid_t`
+- `(userptr_t)tf->tf_a1`: Il registro `tf_a1` del `trapframe` contiene un puntatore a dati utente
+- `(int)tf->tf_a2`: Il registro `tf_a2` del `trapframe` contiene un intero che rappresenta le opzioni o il comportamento desiderato per la chiamata `waitpid`
+
+
+In Minix3, la syscall _waitpid_ non è presente per impostazione predefinita. Questa syscall è stata introdotta in versioni successive come Minix3.3.0, ma tuttora non è ancora disponibile nella versione standard del sistema operativo. 
+
+La mancanza della syscall waitpid in Minix3 comporta gli stessi problemi discussi in precedenza per OS161.
 
 ## Scheduling ##
 
@@ -305,7 +325,6 @@ Le **Condition Variables** sono strumenti per la sincronizzazione che consentono
 Nel sistema operativo Minix 3, le variabili di condizione sono implementate come strutture dati speciali contenenti un valore booleano e un elenco di thread sospesi. 
 
 •	Quando un thread esegue l'operazione **wait()** su una variabile di condizione, il suo valore booleano viene impostato a falso e il thread stesso viene sospeso.
-
 L'operazione **wait()** restituisce un valore booleano indicante se la condizione è stata soddisfatta prima della sospensione del thread. La condizione è considerata soddisfatta quando il valore booleano della variabile di condizione diventa vero. 
 
 •	L'operazione **signal()** viene utilizzata per cambiare il valore booleano a vero e risvegliare il primo thread sospeso. Nel caso in cui non ci siano thread sospesi, **signal()** non ha effetto. La funzione **broadcast()** è simile a **signal()**, ma risveglia tutti i thread sospesi sulla variabile di condizione.
@@ -316,9 +335,6 @@ Un **Wait channel** è concettualmente affine a una variabile di condizione e pe
 Sia Minix 3 che OS161 adottano approcci simili per l'utilizzo delle variabili di condizione nell'ambito della sincronizzazione dei thread. Entrambi i sistemi permettono ai thread di attendere il soddisfacimento di condizioni specifiche e di coordinarsi in modo sicuro. La principale differenza riguarda l'implementazione interna: Minix 3 utilizza strutture dati contenenti valori booleani e thread sospesi, mentre OS161 si basa sui "wait channels" per raggiungere lo stesso obiettivo di sincronizzazione.
 
 
-
-(Spinlocks, semafori, condition variables, deadlock...) 
-+ da fare!!
 
 
 # Sezione II: Implementazione di nuove funzionalità  #
