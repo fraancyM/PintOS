@@ -262,6 +262,41 @@ OS161 si focalizza su **spinlock con attesa attiva**.
 
 •	OS161 implementa controlli avanzati, inclusi quelli per il rilevamento dei deadlock tramite un campo specifico all'interno delle strutture dei spinlock.
 
+### Semafori ###
+
+I semafori sono strumenti di sincronizzazione utilizzati per coordinare l'accesso a risorse condivise tra più processi o thread, consentono di regolare l'ordine di esecuzione delle attività evitando problemi come le condizioni di gara e l'accesso simultaneo a risorse critiche.
+
+Sono usati per garantire la coerenza e la correttezza dei dati in ambienti concorrenti, controllando l'accesso alle risorse attraverso operazioni di incremento e decremento.
+
+In MINIX 3, l'approccio all'implementazione dei semafori segue le linee guida della normativa **POSIX 1003.1b**: semafori sono rappresentati come variabili condivise, le quali contengono valori interi che riflettono il loro stato.
+Attraverso funzioni come:
+•	**sem_open()** per la creazione o l'apertura di un semaforo, 
+
+•	**sem_close()** per la chiusura, 
+
+•	**sem_wait()** per il decremento (con blocco se il valore è zero), 
+
+•	**sem_post()** per l'incremento 
+
+•	**sem_timedwait()** per attese con limiti di tempo, 
+
+MINIX 3 mette a disposizione un set di strumenti per la sincronizzazione dei processi concorrenti. 
+
+Nel caso di OS161, l'implementazione dei semafori si differenzia in alcuni aspetti. 
+Il sistema offre due tipi principali di semafori: **semafori di conteggio** e **semafori binari**.
+I primi possono assumere valori interi in un dominio illimitato; i semafori binari presentano solo due valori, 0 o 1, simili alle mutex.
+
+Le operazioni principali sono:
+
+•	**wait(S)**: sospende un processo o un thread fino a quando il valore del semaforo S non diventa maggiore di 0,
+
+•	**signal(S)**: incrementa il valore del semaforo 
+
+Un aspetto distintivo dell'implementazione di OS161 è l'utilizzo di **code di attesa** per i semafori, associando a ciascun semaforo una coda che struttura le attese dei processi in modo ordinato. 
+Inoltre, il sistema introduce anche il concetto di **locks**: analoghi ai semafori binari, ma specificamente utilizzati per garantire l'esclusione mutua tra processi.
+In OS161 sono implementati anche i **semafori interrupt-based**, che utilizzano interruzioni per notificare ai thread i cambiamenti di stato. Questo approccio evita il consumo energetico associato alla pratica del "busy waiting", migliorando l'efficienza delle attese.
+In sintesi, mentre MINIX 3 aderisce alle specifiche POSIX con l'uso di semafori numerici e offre funzioni come "sem_timedwait()" per attese limitate nel tempo, OS161 presenta un'implementazione più flessibile con semafori di conteggio e semafori binari supportati da code di attesa. Inoltre, OS161 si distingue per l'introduzione dei "semafori interrupt-based" e dei "locks" per una migliore gestione della mutua esclusione.
+
 
 (Spinlocks, semafori, condition variables, deadlock...) 
 + da fare!!
