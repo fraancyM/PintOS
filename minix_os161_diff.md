@@ -135,6 +135,7 @@ La funzione `sys_exit` restituirà il valore ottenuto dalla system call di uscit
 
 La system call WAITPID è una chiamata di sistema utilizzata per gestire i processi e _monitorare la loro terminazione_ in un sistema operativo. Quando un processo genitore desidera attendere che un processo figlio termini la sua esecuzione, può utilizzare la chiamata di sistema waitpid per ottenere informazioni sullo stato di uscita del processo figlio.
 Nella versione base di OS161 manca il supporto per la syscall `waitpid`, che comporta vari problemi tra cui: 
+
 •	**mancata sincronizzazione**: la syscall `waitpid` consente al processo genitore di sincronizzarsi con l'esecuzione dei processi figli. Senza questa sincronizzazione, potrebbe essere difficile coordinare il flusso di esecuzione e l'ordinamento delle operazioni tra processi genitori e figli
 
 •	**processi zombie**: il processo genitore non può raccogliere le informazioni sullo stato dei suoi processi figli una volta che sono terminati. Questo può portare alla creazione di processi "zombie", che sono processi che hanno terminato l'esecuzione ma mantengono una voce nella tabella dei processi fino a quando il processo genitore non raccoglie le informazioni sul loro stato.
