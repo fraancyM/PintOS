@@ -322,7 +322,6 @@ static bool load_segment (struct file *file, off_t ofs, uint8_t *upage,
 bool
 load (const char *file_name, void (**eip) (void), void **esp)
 {
-
   struct thread *t = thread_current ();
   struct Elf32_Ehdr ehdr;
   struct file *file = NULL;
@@ -337,16 +336,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
   process_activate ();
 
   /* Open executable file. */
-  char * fn_cp = malloc (strlen(file_name)+1);
-  strlcpy(fn_cp, file_name, strlen(file_name)+1);
-  char * save_ptr;
-  fn_cp = strtok_r(fn_cp," ",&save_ptr);
-  /*  Opening executable
-      It will be kept open until the new process exits
-      OR load fails */
-  file = filesys_open (fn_cp);
-  free(fn_cp);
-
+  file = filesys_open (file_name);
   if (file == NULL)
     {
       printf ("load: %s: open failed\n", file_name);
@@ -417,8 +407,8 @@ load (const char *file_name, void (**eip) (void), void **esp)
                                  read_bytes, zero_bytes, writable))
                 goto done;
             }
-          else {printf("here\n");
-            goto done;}
+          else
+            goto done;
           break;
         }
     }
@@ -431,16 +421,9 @@ load (const char *file_name, void (**eip) (void), void **esp)
   *eip = (void (*) (void)) ehdr.e_entry;
 
   success = true;
-  /* Denying writes to executable */
-  file_deny_write(file);
-  /* Storing reference of the executable
-     We will have to close it while exiting
-     inorder to make it modifiable again */
-  thread_current()->file = file;
+
  done:
-  /* We arrive here whether the load is successful or not. */
-  /* If load has failed, close the executable file */
-  if (success!= true)
+ /* We arrive here whether the load is successful or not. */
     file_close (file);
   return success;
 }
@@ -556,7 +539,7 @@ load_segment (struct file *file, off_t ofs, uint8_t *upage,
 /* Create a minimal stack by mapping a zeroed page at the top of
    user virtual memory. */
 static bool
-setup_stack (void **esp, char * file_name)
+setup_stack (void **esp, char *file_name)
 {
   uint8_t *kpage;
   bool success = false;
@@ -571,64 +554,56 @@ setup_stack (void **esp, char * file_name)
         palloc_free_page (kpage);
     }
 
-  // Setting up command line arguments
+   //Aggiunto
+  /* Gestione della linea di comando */
+  char *current_token; //Puntatore per la porzione della stringa file_name
+  char *save_ptr;
+  int argv_size = 2; //Dimensione iniziale del vettore argv
+  int argc_count = 0; //Contatore numero di argomenti riga di comando
+  char **argv = malloc (argv_size * sizeof(char *));
 
-  char * token;
-  char * save_ptr;
-  // Initial argv_size | Will be incremented as needed
-  int argv_size = 2;
-  int argc = 0;
-  char ** argv = malloc (argv_size * sizeof(char *));
+  for (current_token = strtok_r (file_name, " ", &save_ptr); current_token!= NULL; current_token = strtok_r (NULL, " ", &save_ptr)){
+    *esp -= strlen(current_token) + 1;
+    argv[argc_count] = *esp;
+    argc_count++;
 
-  for (token = strtok_r (file_name, " ", &save_ptr); token!= NULL;
-      token = strtok_r (NULL, " ", &save_ptr))
-  {
-    *esp -= strlen(token) + 1;
-    argv[argc] = *esp;
-    argc++;
-
-    if (argc >= 64)
-    {
+    /* Verifico se il numero di argomenti supera il limite massimo consentito (64).
+    In quel caso la memoria allocata di argv viene liberata. */
+    if (argc_count >= 64){
       free(argv);
       return false;
     }
 
-
-    if (argc >= argv_size)
-    {
-      argv_size *= 2;
+    if (argc_count >= argv_size){
+      argv_size *= 2; // Raddoppio della dimensione di argv_size per riallocare
       argv = realloc(argv,argv_size* sizeof(char *));
     }
 
-    memcpy(*esp,token,strlen(token) + 1);
+    memcpy(*esp,current_token,strlen(current_token) + 1);
 
   }
-
-  argv[argc] = 0;
+  argv[argc_count] = 0;
 
   int i = 0;
-  for (i = argc; i >= 0; i--)
-  {
+  for (i = argc_count; i >= 0; i--){
     *esp -= sizeof(char*);
     memcpy(*esp,&argv[i],sizeof(char*));
-
   }
 
-  //pushing argv
-  token = *esp;
+  //argv
+  current_token = *esp;
   *esp-=sizeof(char**);
-  memcpy(*esp,&token,sizeof(char**));
+  memcpy(*esp,&current_token,sizeof(char**));
 
-  // Pushing argc
+  //argc
   *esp -= sizeof(int);
-  memcpy(*esp,&argc,sizeof(int));
+  memcpy(*esp,&argc_count,sizeof(int));
 
   // Pushing fake return address
   *esp -= sizeof(void*);
-  memcpy(*esp, &argv[argc],sizeof(void *));
+  memcpy(*esp, &argv[argc_count],sizeof(void *));
   free(argv);
 
-  //hex_dump(PHYS_BASE,*esp,PHYS_BASE-(*esp),true);
   return success;
 }
 
@@ -652,13 +627,13 @@ install_page (void *upage, void *kpage, bool writable)
           && pagedir_set_page (t->pagedir, upage, kpage, writable));
 }
 
-struct child * get_child(tid_t id,struct thread * curr)
-{
-  struct list_elem * e;
-  for (e=list_begin(&curr->children);
-    e!=list_end(&curr->children);e=list_next(e))
-  {
-    struct child * child = list_entry(e,struct child,elem);
+//Aggiunta
+/* Cerco un elemento nella lista dei figli del thread in base
+all'identificatore id5. */
+struct child *get_child(tid_t id, struct thread *curr){
+  struct list_elem *e;
+  for (e=list_begin(&curr->children); e!=list_end(&curr->children); e=list_next(e)) {
+    struct child *child = list_entry(e,struct child,elem);
     if(child->id == id)
       return child;
   }
