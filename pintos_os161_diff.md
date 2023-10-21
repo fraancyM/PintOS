@@ -26,7 +26,22 @@ _pintOS_ invece è progettato come un sistema operativo di tipo microkernel, che
 _pintOS_ utilizza il concetto di "thread utente" per rappresentare i processi. Ogni thread utente contiene le informazioni necessarie per l'esecuzione del processo, come il codice del programma, lo stato del processore e lo stato di I/O. I thread utente sono implementati come thread del kernel, il che semplifica la gestione dei processi.
 
 ## System Calls ##
-Da decidere se fare questa sezione o meno. 
+
+Le system calls (chiamate di sistema) sono funzioni fornite dal sistema operativo per consentire ai programmi di interagire con il kernel (il nucleo del sistema operativo) e sfruttare le risorse del sistema, come l'hardware, i file, la memoria e altro. Sono fondamentali per il funzionamento dei sistemi operativi e svolgono un ruolo cruciale in vari aspetti:
+
+1. **Gestione delle risorse**: Le system calls consentono ai programmi di richiedere l'allocazione e la liberazione di risorse hardware, come memoria, CPU e dispositivi di I/O. Ad esempio, una system call può essere utilizzata per richiedere memoria dinamica o per leggere da un file su disco.
+
+2. **Protezione**: Le system calls impediscono ai programmi utente di accedere direttamente alle risorse hardware o di eseguire operazioni pericolose. Questo garantisce che il sistema operativo abbia il controllo su quali risorse vengono allocate o condivise tra i processi e previene l'accesso non autorizzato.
+
+3. **Comunicazione tra processi**: Le system calls consentono la comunicazione tra i processi. Ad esempio, è possibile utilizzare system calls per creare processi figlio, condividere dati tra processi o sincronizzare l'esecuzione di processi diversi.
+
+4. **Gestione dei file**: Molte system calls sono dedicate alla gestione dei file, inclusa la creazione, l'apertura, la lettura, la scrittura e la chiusura dei file. Queste operazioni sono fondamentali per l'archiviazione e il recupero dei dati.
+
+5. **Gestione delle interruzioni**: Le system calls consentono al kernel di gestire le interruzioni hardware e rispondere a eventi come la pressione di un tasto sulla tastiera o l'arrivo di dati in una porta di rete.
+
+6. **Comunicazione di rete**: System calls sono spesso utilizzate per la comunicazione di rete, consentendo ai programmi di inviare e ricevere dati su una rete, come Internet.
+
+_Os161_ e _Pintos_, sono sistemi operativi progettati per scopi didattici, per cui in entrambi nativamente manca il supporto completo delle system calls, come vedremo successivamente nella **sezione II** del progetto. 
 
 ## Scheduling ##
 
@@ -97,7 +112,39 @@ I principali meccanismi di sincronizzazione sono: Mutex, Semaphore, Locks e Cond
 
 ### Condition variables ###
 
+# Sezione II: Implementazione di nuove funzionalità #
 
+Come detto precedentemente, _Pintos_ è stato progettato principalmente per scopi didattici e per aiutare gli studenti a comprendere i concetti chiave dei sistemi operativi. Per questo progetto abbiamo scelto di focalizzarci sull'implementazione di alcune system calls poichè in Pintos non sono gestite per semplicità.
 
-# Sezione II: Implementazione di nuove funzionalità  #
+Le system calls definite nativamente in Pintos in `src/lib/syscall-nr.h` sono:
+
+ ```c
+/* System call numbers. */
+enum 
+  {
+    SYS_HALT,                   /* Halt the operating system. */
+    SYS_EXIT,                   /* Terminate this process. */
+    SYS_EXEC,                   /* Start another process. */
+    SYS_WAIT,                   /* Wait for a child process to die. */
+    SYS_CREATE,                 /* Create a file. */
+    SYS_REMOVE,                 /* Delete a file. */
+    SYS_OPEN,                   /* Open a file. */
+    SYS_FILESIZE,               /* Obtain a file's size. */
+    SYS_READ,                   /* Read from a file. */
+    SYS_WRITE,                  /* Write to a file. */
+    SYS_SEEK,                   /* Change position in a file. */
+    SYS_TELL,                   /* Report current position in a file. */
+    SYS_CLOSE,                  /* Close a file. */
+
+    SYS_MMAP,                   /* Map a file into memory. */
+    SYS_MUNMAP,                 /* Remove a memory mapping. */
+
+    SYS_CHDIR,                  /* Change the current directory. */
+    SYS_MKDIR,                  /* Create a directory. */
+    SYS_READDIR,                /* Reads a directory entry. */
+    SYS_ISDIR,                  /* Tests if a fd represents a directory. */
+    SYS_INUMBER                 /* Returns the inode number for a fd. */
+  };
+ ```
+Noi abbiamo scelto di implementare ...
 
