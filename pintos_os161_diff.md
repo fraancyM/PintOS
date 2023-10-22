@@ -6,6 +6,7 @@
 Argomenti contro-parte OS:
 - System calls: https://ops-class.org/man/syscall/
 - Processes scheduling: http://jhshi.me/2012/03/18/os161-process-scheduling/index.html
+- Understanding system calls: https://tddg.github.io/cs571-spring20/proj2_understand_syscalls.html
 
 # Progetto 1.1: Analisi comparativa tra OS161 e altri sistemi operativi open-source all'avanguardia per sistemi embedded e computer general purpose
 
@@ -81,13 +82,19 @@ Entrambi gli ambienti sono validi per l'apprendimento dei principi di scheduling
 
 Pintos implementa una gestione della memoria virtuale di base. Questo include la paginazione e la gestione dello spazio degli indirizzi dei processi, consentendo ai processi di operare in spazi di indirizzamento separati e protetti. Utilizza, inoltre, un file speciale chiamato "pagina di swap" per memorizzare temporaneamente le pagine fisiche quando la memoria fisica è esaurita. Questo permette di gestire i casi in cui la memoria fisica è piena, spostando le pagine meno utilizzate in memoria su disco e recuperandole quando necessario.
 
-Più in particolare, la memoria fisica di Pintos è suddivisa in pagine di dimensioni fisse, e ogni pagina ha un numero di pagina univoco. Ogni processo ha un proprio spazio di indirizzamento virtuale, suddiviso in pagine. La mappatura tra gli indirizzi virtuali dei processi e gli indirizzi fisici delle pagine è gestita da una tabella delle pagine (Page Table) specifica per ciascun processo. Esso fa uso di strutture dati quali vettori, liste, bitmap ecc... ma principalmente Pintos include una struttura di tipo BitMap per tenere traccia dell'utilizzo in un insieme di risorse (identiche), e inoltre utilizza anche una struttura di tipo Hash Table che supporta, in maniera efficiente, le inserimenti ed eliminazioni su un'ampia gamma di tabelle. 
+Più in particolare, la memoria fisica di _Pintos_ è suddivisa in pagine di dimensioni fisse, e ogni pagina ha un numero di pagina univoco. Ogni processo ha un proprio spazio di indirizzamento virtuale, suddiviso in pagine. La mappatura tra gli indirizzi virtuali dei processi e gli indirizzi fisici delle pagine è gestita da una tabella delle pagine (Page Table) specifica per ciascun processo. Esso fa uso di strutture dati quali vettori, liste, bitmap ecc... ma principalmente _Pintos_ include una struttura di tipo BitMap per tenere traccia dell'utilizzo in un insieme di risorse (identiche), e inoltre utilizza anche una struttura di tipo Hash Table che supporta, in maniera efficiente, le inserimenti ed eliminazioni su un'ampia gamma di tabelle. 
 
-Per questi motivi Pintos possiede un sistema di paginazione e memoria virtuale simile a quello presente su OS161, mentre la sostanziale differenza risiede nel livello di complessità con cui sono state implementate queste funzioni.
+Per questi motivi _Pintos_ possiede un sistema di paginazione e memoria virtuale simile a quello presente su OS161, mentre la sostanziale differenza risiede nel livello di complessità con cui sono state implementate queste funzioni.
 La paginazione presente in OS161 è più avanzata, offrendo quindi funzionalità aggiuntive rispetto a Pintos.
 
 
 **Gestione delle chiamate**
+
+In _Pintos_, le chiamate di sistema (system calls) sono gestite tramite una serie di passaggi che coinvolgono l'utente, il kernel e il sistema operativo.
+
+Quando un processo utente desidera effettuare una chiamata di sistema utilizza una funzione o un'istruzione speciale, che genera un'interruzione o una trap e questa operazione passa il controllo al kernel. Una volta generata l'interruzione, il controllo viene passato al dispatcher di sistema del kernel. Il dispatcher è responsabile di identificare il tipo di chiamata di sistema richiesta e di instradare l'esecuzione al gestore appropriato. Il kernel di _Pintos_ effettua la validazione e l'autenticazione delle chiamate di sistema. Verifica che il processo utente abbia i diritti necessari per eseguire la chiamata di sistema richiesta e che i parametri passati siano validi, e una volta che il kernel ha verificato e autenticato la chiamata di sistema, esegue il servizio richiesto dal processo utente. Dopo aver eseguito la chiamata di sistema e soddisfatto la richiesta del processo utente, il kernel restituisce il controllo al processo utente.
+
+_OS161_ implementa in maniera simile a Pintos la gestione delle chiamate, tenendo però conto delle differenze di codice e strutture dati utilizzate da entrambi i sistemi operativi.
 
 ## Meccanismi di sincronizzazione ##
 
@@ -108,7 +115,29 @@ I principali meccanismi di sincronizzazione sono: Mutex, Semaphore, Locks e Cond
 
 ### Mutex e Spinlock ###
 
+Sia _Pintos_ che _OS161_ condividono parti comuni nella gestione di **Mutex** e **Spinlock**. Innanzitutto, definiscono strutture di dati specializzate che contengono informazioni cruciali, come lo **stato del lock** e l'**identificatore** del thread/processo detentore. Inoltre, entrambi offrono funzionalità per l'inizializzazione di questi meccanismi, consentendo di configurare adeguatamente le loro proprietà iniziali.
+L'**acquisizione** dei mutex o spinlock è un altro aspetto comune: entrambi i sistemi forniscono funzioni attraverso le quali un thread o un processo può richiedere l'accesso esclusivo a una risorsa condivisa. Nel caso in cui il lock sia già detenuto, il thread/processo richiedente dovrà attendere fino a quando il lock non sarà rilasciato.
+Il **rilascio** è altrettanto importante: una volta che un thread o processo ha terminato di utilizzare una risorsa condivisa, è cruciale rilasciare il lock corrispondente per permettere ad altri thread/processi in attesa di accedere alla risorsa.
+
 ### Semafori ###
+
+I semafori sono meccanismi di sincronizzazione utilizzati per coordinare l'accesso a risorse condivise tra più processi o thread, consentono di regolare l'ordine di esecuzione delle attività evitando problemi come le condizioni di gara e l'accesso simultaneo a risorse critiche. Sono usati per garantire la coerenza e la correttezza dei dati in ambienti concorrenti, controllando l'accesso alle risorse attraverso operazioni di incremento e decremento.
+
+_Pintos_ fornisce funzioni standard per l'inizializzazione dei semafori, l'acquisizione e il rilascio di semafori, nonché altre operazioni comuni. Ad esempio, sema_init(), sema_down(), e sema_up() sono alcune delle funzioni standard utilizzate per lavorare con i semafori. Inoltre, offre anche un sistema di gestione delle priorità, e i semafori sono spesso utilizzati per la sincronizzazione e il rilascio di thread in base alle priorità.
+
+(Da mettere o no ?)Il principale punto di differenza tra Pintos e OS161 nella gestione dei semafori riguarda il livello di astrazione e personalizzazione. _Pintos_ offre una libreria di sincronizzazione standard con funzioni predefinite per semplificare l'uso dei semafori, mentre _OS161_ potrebbe richiedere di implementare i semafori da zero o definire le proprie API.
+
+Nel caso di OS161, l'implementazione dei semafori si differenzia in alcuni aspetti. 
+Il sistema offre due tipi principali di semafori: **semafori di conteggio** e **semafori binari**.
+I primi possono assumere valori interi in un dominio illimitato; i semafori binari presentano solo due valori, 0 o 1, simili alle mutex.
+
+Le operazioni principali sono:
+
+•	**wait(S)**: sospende un processo o un thread fino a quando il valore del semaforo S non diventa maggiore di 0,
+
+•	**signal(S)**: incrementa il valore del semaforo 
+
+In OS161 sono implementati anche i **semafori interrupt-based**, che utilizzano interruzioni per notificare ai thread i cambiamenti di stato. Questo approccio evita il consumo energetico associato alla pratica del "busy waiting", migliorando l'efficienza delle attese.
 
 ### Condition variables ###
 
