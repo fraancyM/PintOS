@@ -4,6 +4,7 @@
 #include <debug.h>
 #include <list.h>
 #include <stdint.h>
+#include "synch.h" //Aggiunto
 
 /* States in a thread's life cycle. */
 enum thread_status
@@ -98,7 +99,40 @@ struct thread
     uint32_t *pagedir;                  /* Page directory. */
 #endif
 
-    /* Owned by thread.c. */
+//Aggiunto
+    /* Memorizzo il codice di uscita del processo che utilizzo per stampare il messaggio di uscita del processo.*/
+    int exit_code;
+
+    /* Lista dei file aperti dal thread */
+    struct list file_list;
+
+    /* Tengo traccia del numero totale di file aperti dal thread. */
+    int fd_count;
+
+    /* Passo lo stato di ritorno al thread genitore quando il thread corrente termina l'esecuzione. */
+    struct thread *parent;
+
+    /* Lista dei processi figlio del thread corrente. 
+    Ogni elemento della lista è una struttura child definita in "process.h". */
+    struct list children;
+
+    /* Utilizzo un flag segnalare al processo genitore che il processo figlio è stato caricato con successo. Il processo genitore può quindi continuare la sua esecuzione */
+    bool production_flag;
+
+    /* Utilizzo un semaforo per far attendere al thread padre che il thread figlio inizi l'esecuzione. Il semaforo viene rilasciato quando il thread figlio è pronto per essere eseguito. */
+    struct semaphore production_sem;
+
+    /* Puntatore al file eseguibile associato al thread corrente. Il file eseguibile deve essere chiuso quando il thread termina l'esecuzione. */
+    struct file *file;
+
+    /* Lo uso quando un thread attende un processo figlio. Il thread si mette in attesa sul semaforo finché il processo figlio non termina l'esecuzione. */
+    struct semaphore child_sem;
+    
+    /* Tengo traccia per quale thread figlio, il thread è in attesa. */
+    tid_t waiton_child;
+
+//fine aggiunte
+
     unsigned magic;                     /* Detects stack overflow. */
   };
 
