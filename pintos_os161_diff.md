@@ -42,8 +42,6 @@ Le system calls (chiamate di sistema) sono funzioni fornite dal sistema operativ
 
 6. **Comunicazione di rete**: System calls sono spesso utilizzate per la comunicazione di rete, consentendo ai programmi di inviare e ricevere dati su una rete, come Internet.
 
-_Os161_ e _Pintos_, sono sistemi operativi progettati per scopi didattici, per cui in entrambi nativamente manca il supporto completo delle system calls, come vedremo successivamente nella **sezione II** del progetto. 
-
 _Os161_ e _Pintos_, sono sistemi operativi progettati per scopi didattici, infatti in _OS161_ manca il supporto completo alle system calls (per esempio: read, write ed exit) e in _Pintos_ mancano totalmente le implementazioni, come riportato di seguito:
 
 _file syscall.c:_
