@@ -42,9 +42,41 @@ Le system calls (chiamate di sistema) sono funzioni fornite dal sistema operativ
 
 6. **Comunicazione di rete**: System calls sono spesso utilizzate per la comunicazione di rete, consentendo ai programmi di inviare e ricevere dati su una rete, come Internet.
 
-_Os161_ e _Pintos_, sono sistemi operativi progettati per scopi didattici, infatti in _OS161_ manca il supporto completo alle system calls (per esempio: read, write ed exit) e in _Pintos_ mancano totalmente le implementazioni, come riportato di seguito:
+_Os161_ e _Pintos_, sono sistemi operativi progettati per scopi didattici, per cui in entrambi nativamente manca il supporto completo delle system calls, come si può vedere di seguito:
 
-_file syscall.c:_
+* `kern/arch/mips/syscall/syscall.c` in _OS161_
+
+```c
+ void syscall(struct trapframe *tf) {
+	int callno;
+	int32_t retval;
+	int err;
+    ...
+
+	callno = tf->tf_v0;
+	retval = 0;
+
+	switch (callno) {
+	    case SYS_reboot:
+		err = sys_reboot(tf->tf_a0);
+		break;
+
+	    case SYS___time:
+		err = sys___time((userptr_t)tf->tf_a0,
+				 (userptr_t)tf->tf_a1);
+		break;
+
+	    /* Add stuff here */
+
+	    default:
+		kprintf("Unknown syscall %d\n", callno);
+		err = ENOSYS;
+		break;
+	}
+    ...
+ ```
+
+ * `src/userprog/syscall.c` in _Pintos_
 
  ```c
 #include "userprog/syscall.h"
@@ -55,19 +87,18 @@ _file syscall.c:_
 
 static void syscall_handler (struct intr_frame *);
 
-void
-syscall_init (void) 
-{
+void syscall_init (void) {
   intr_register_int (0x30, 3, INTR_ON, syscall_handler, "syscall");
 }
 
-static void
-syscall_handler (struct intr_frame *f UNUSED) 
-{
+static void syscall_handler (struct intr_frame *f UNUSED) {
   printf ("system call!\n");
   thread_exit ();
 }
  ```
+
+ Vedremo l'implementazione di alcune system calls in _Pintos_ nella **sezione II** del progetto.
+
 
 ## Scheduling ##
 
