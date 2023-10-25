@@ -44,6 +44,33 @@ Le system calls (chiamate di sistema) sono funzioni fornite dal sistema operativ
 
 _Os161_ e _Pintos_, sono sistemi operativi progettati per scopi didattici, per cui in entrambi nativamente manca il supporto completo delle system calls, come vedremo successivamente nella **sezione II** del progetto. 
 
+_Os161_ e _Pintos_, sono sistemi operativi progettati per scopi didattici, infatti in _OS161_ manca il supporto completo alle system calls (per esempio: read, write ed exit) e in _Pintos_ mancano totalmente le implementazioni, come riportato di seguito:
+
+_file syscall.c:_
+
+ ```c
+#include "userprog/syscall.h"
+#include <stdio.h>
+#include <syscall-nr.h>
+#include "threads/interrupt.h"
+#include "threads/thread.h"
+
+static void syscall_handler (struct intr_frame *);
+
+void
+syscall_init (void) 
+{
+  intr_register_int (0x30, 3, INTR_ON, syscall_handler, "syscall");
+}
+
+static void
+syscall_handler (struct intr_frame *f UNUSED) 
+{
+  printf ("system call!\n");
+  thread_exit ();
+}
+ ```
+
 ## Scheduling ##
 
 ### Obiettivi ###
