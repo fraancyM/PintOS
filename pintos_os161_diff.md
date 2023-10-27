@@ -96,32 +96,68 @@ static void syscall_handler (struct intr_frame *f UNUSED) {
   thread_exit ();
 }
  ```
-
  Vedremo l'implementazione di alcune system calls in _Pintos_ nella **sezione II** del progetto.
-
 
 ## Scheduling ##
 
-### Obiettivi ###
-
-_OS161_ e _PINTOS_ sono entrambi sistemi operativi utilizzati per scopi didattici, ma presentano approcci diversi rispetto alla gestione dello scheduling dei processi. _OS161_ è principalmente un sistema operativo didattico per l'apprendimento dei concetti dei sistemi operativi con un'implementazione semplice. _PINTOS_ fornisce una base più operativa per gli studenti, poichè mira ad essere un sistema operativo di base che sia in grado di eseguire applicazioni reali.
-
 ### Politiche di Scheduling ###
 
-Le politiche di scheduling di _OS161_ e _pintOS_ risultano diverse, pur essendo entrambi sistemi operativi didattici, utilizzati spesso in corsi universitari per insegnare i principi dei sistemi operativi.
+Le politiche di scheduling di _OS161_ e _pintOS_ risultano simili, essendo sistemi operativi didattici, utilizzati spesso in corsi universitari per insegnare i principi dei sistemi operativi.
 
-In particolare, _OS161_ utilizza una politica di scheduling semplice e predefinita basata sull'approccio Round Robin (RR), dove i processi vengono assegnati in base al loro ordine di arrivo. Inoltre, non è possibile implementare politiche di scheduling personalizzate poiché l'allocazione del tempo della CPU è principalmente gestita dal kernel per ragioni di sicurezza e stabilità.
-
-_pintOS_ utilizza uno scheduling basato sulla priorità come politica di base, dove ogni processo ha un livello di priorità associato, e il processo con la priorità più alta viene selezionato per l'esecuzione. È possibile implementare politiche di scheduling più avanzate come il Multi-Level Feedback Queue (MLFQ) o il Fixed Priority Scheduler. Può anche implementare la donazione della priorità per gestire situazioni in cui un processo a bassa priorità detiene una risorsa necessaria da un processo ad alta priorità. La priorità del processo a bassa priorità può temporaneamente aumentare per garantire il rilascio tempestivo della risorsa.
+Infatti, entrambi utilizzano una politica di scheduling semplice e predefinita basata sull'approccio Round Robin (RR), dove i processi vengono assegnati in base al loro ordine di arrivo. 
+Tuttavia, sia in _OS161_ che in _Pintos_, è possibile implementare, come estensione del sistema operativo, politiche di scheduling più avanzate come il Multi-Level Feedback Queue (MLFQ), il Dynamic Priority Scheduling o l'Inverse Priority Scheduling. 
 
 ### Implementazione ###
 
-_OS161_ implementa l'algoritmo Round Robin con una singola coda, in cui ogni processo riceve un quantum di tempo assegnato e, quando il quantum scade, il processo viene messo in coda e viene eseguito il successivo processo pronto. Questo ciclo di esecuzione continua finchè ci sono processi nella coda pronti ad essere eseguiti. 
+Entrambi i sistemi operativi, implementano l'algoritmo Round Robin, in cui i processi vengono schedulati in modo circolare. Ogni processo riceve un quantum di tempo assegnato (in _Pintos_ `#define TIME_SLICE 4`) e, quando il quantum scade, il processo viene messo in coda e viene eseguito il successivo processo pronto. Questo ciclo di esecuzione continua finchè ci sono processi nella coda pronti ad essere eseguiti. Non c'è nessuna gestione di priorità: tutti i thread sono trattati allo stesso modo.
+
+In _Pintos_ la funzione responsabile di "restituire" la CPU allo scheduler e consentire agli altri thread di essere eseguiti è la `thread_yield`.
+
+```c
+void thread_yield (void) {
+
+  /* Puntatore al thread corrente */
+  struct thread *cur = thread_current ();
+  enum intr_level old_level;
+
+  /* Si verifica che la funzione non sia chiamata da un gestore di interrupt */
+  ASSERT (!intr_context ());
+
+  old_level = intr_disable ();
+  if (cur != idle_thread)
+    list_push_back (&ready_list, &cur->elem);
+  cur->status = THREAD_READY;
+  schedule ();
+  intr_set_level (old_level);
+}
+```
+La funzione `thread_yield` consente al thread corrente di rilasciare volontariamente la CPU e di diventare pronto per essere eseguito nuovamente, ma senza mettersi in attesa. Ciò è utile per consentire allo scheduler di determinare quale thread deve essere eseguito successivamente, senza causare un ritardo significativo.
+
+Se il thread corrente non è l'`idle_thread` (il thread inattivo), il thread corrente viene inserito nella coda dei thread pronti (`ready_list`) utilizzando la `list_push_back()`. Questo significa che il thread è pronto ad essere eseguito, ma lo scheduler può decidere di concedere la CPU ad un altro thread prima di eseguirlo nuovamente. Viene impostato lo stato del thread corrente a `THREAD_READY`, indicando che il thread è pronto per l'esecuzione ma non è attualmente in esecuzione. Viene chiamata poi la funzione `schedule()` per permettere allo scheduler di decidere quale thread eseguire successivamente.
+
+Alla fine viene ripristinato il livello di interrupt utilizzando `intr_set_level (old_level)` e permettere che gli interrupt siano nuovamente abilitati alla priorità iniziale, prima della chiamata a `thread_yield`.
+
+```c
+static void schedule (void) {
+  struct thread *cur = running_thread ();
+  struct thread *next = next_thread_to_run ();
+  struct thread *prev = NULL;
+
+  /* Asserzioni per verificare che le interruzioni siano disabilitate e che il thread corrente non sia più in uno stato di esecuzione. */
+  ASSERT (intr_get_level () == INTR_OFF);
+  ASSERT (cur->status != THREAD_RUNNING);
+  ASSERT (is_thread (next));
+
+  if (cur != next)
+    prev = switch_threads (cur, next);
+  thread_schedule_tail (prev);
+}
+```
+La funzione `schedule()`, nel dettaglio, svolge un ruolo essenziale: ottiene un riferimento al thread corrente con `running_thread()` e un riferimento al successivo thread da eseguire con `next_thread_to_run()`. Il `next_thread_to_run` è selezionato dallo scheduler e rappresenta il successivo thread nella coda dei thread pronti (`ready_list`). Se il thread corrente (`cur`) è diverso dal successivo thread da eseguire (`next`), la funzione chiama `switch_threads` per effettuare una commutazione di contesto tra i due thread, ossia restituire un riferimento al thread che stava precedentemente in esecuzione. Questa operazione comporta la modifica dei registri della CPU in modo che il successivo thread possa essere eseguito. La funzione `schedule` richiama poi `thread_schedule_tail` per completare il processo di pianificazione e assicurarsi che il successivo thread sia in esecuzione. La variabile `prev` è utilizzata per tracciare il thread precedentemente in esecuzione, se è stato commutato.
 
 ### Gestione delle priorità ###
 
-OS161 possiede un sistema più semplice e prevedibile, in cui, nella versione base, non esiste il concetto di priorità. Ciò significa che un processo continuerà ad essere eseguito finché non avrà terminato la sua esecuzione, indipendentemente dai requisiti di CPU di altri processi.
-
+Nella versione base, per entrambi i sistemi, non esiste il concetto di priorità. Ciò significa che un processo continuerà ad essere eseguito finché non avrà terminato la sua esecuzione, indipendentemente dai requisiti di CPU di altri processi.
 
 ### La gestione delle interruzioni ###
 
@@ -129,8 +165,8 @@ _OS161_ ha un semplice sistema di gestione delle interruzioni, in cui le routine
 
 ### Conclusioni ###
 
-In conclusione, _OS161_ è più orientato all'apprendimento e alla semplificazione, concentrandosi sulla comprensione dei concetti di base dei sistemi operativi e sulla loro implementazione, mentre _Pintos_ è noto per essere altamente modulare, il che facilita la comprensione e la personalizzazione del sistema operativo e mira a fornire un'esperienza più realistica e operativa. Questa struttura modulare offre agli studenti in ambito didattico l'opportunità di esplorare e sperimentare con vari aspetti del sistema operativo.
-Entrambi gli ambienti sono validi per l'apprendimento dei principi di scheduling dei processi nei sistemi operativi, ma il loro focus differisce leggermente in base agli obiettivi educativi.
+In conclusione, _OS161_ e _Pintos_, sono entrambi sistemi operativi utilizzati per scopi didattici, tuttavia il primo è più orientato all'apprendimento dei concetti dei sistemi operativi con un'implementazione semplice, il secondo fornisce una base più operativa per gli studenti, poichè mira ad essere un sistema operativo di base che sia in grado di eseguire applicazioni reali.
+Entrambi gli ambienti sono validi per l'apprendimento dei principi di scheduling, ma il loro focus differisce leggermente in base agli obiettivi educativi.
 
 ## Gestione della memoria ##
 
