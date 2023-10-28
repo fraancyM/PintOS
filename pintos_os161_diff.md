@@ -267,5 +267,66 @@ enum
     SYS_INUMBER                 /* Returns the inode number for a fd. */
   };
  ```
-Noi abbiamo scelto di implementare ...
+Noi abbiamo scelto di implementare:
++ SYS_HALT
++ SYS_EXIT
++ ...
++ ...
 
+Le implementazioni sono state aggiunte in `src/userprog/syscall.c` e gestite nella `syscall_handler` tramite uno switch-case in base al numero di syscall.  
+
+```c
+static void syscall_handler (struct intr_frame *f) {
+
+  int *ptr = f->esp;
+  int syscall_number = *ptr;
+
+  switch (syscall_number) {
+    case SYS_HALT:
+      /* ... */
+      break;
+		case SYS_EXIT:
+      /* ... */
+      break;
+
+    /* ... */
+
+    default:
+      // Numero System Call non valido    
+      break;
+	}
+}
+```
+I prototipi delle system calls implementate sono stati aggiunti in `src/userprog/syscall.h`
+
+### SYS_HALT ###
+
+La syscall HALT è utilizzata per terminare l'esecuzione del sistema operativo e spegnere il computer o la macchina virtuale in cui il sistema operativo è in esecuzione. In sostanza, viene utilizzata per spegnere il sistema in modo controllato e si implementa richiamando semplicemente la `shutdown_power_off()`, funzione già esistente in _Pintos_. 
+
+```c
+void halt (void){
+  shutdown_power_off();
+}
+```
+
+### SYS_EXIT ###
+
+La system call EXIT è una chiamata di sistema utilizzata per terminare un processo in un sistema operativo. Quando un programma chiama la funzione `exit`, il processo corrente viene terminato e le risorse associate ad esso, come la memoria, i file aperti e altre risorse di sistema, vengono rilasciate. Prima di terminare il processo viene di solito restituito un valore di uscita al chiamante, che può essere recuperato dal processo padre o dal sistema operativo e utilizzato per valutare lo stato di terminazione del processo.
+
+```c
+void exit (int status){
+
+// continuare
+
+}
+```
+Il parametro `status` è il codice di uscita del processo che sta terminando e verrà restituito al processo genitore per indicare lo stato di terminazione del processo.
+
+
+### SYS_ ###
+
+### SYS_ ###
+
+### SYS_ ###
+
+### SYS_ ###
