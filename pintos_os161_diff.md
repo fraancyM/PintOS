@@ -323,7 +323,19 @@ void exit (int status){
 Il parametro `status` è il codice di uscita del processo che sta terminando e verrà restituito al processo genitore per indicare lo stato di terminazione del processo.
 
 
-### SYS_ ###
+### SYS_OPEN ###
+
+La system call OPEN è una chiamata di sistema utilizzata nei sistemi operativi per aprire un file o creare un nuovo file, a seconda delle opzioni specificate. La chiamata di sistema open è fondamentale per la gestione dei file nei sistemi operativi e consente ai programmi di accedere, leggere e scrivere dati nei file. Le opzioni specificate nella chiamata open determinano come il file verrà aperto e manipolato dal programma.
+
+```c
+void open (const char * file){
+
+// continuare
+
+}
+```
+
+Il parametro `file` rappresenta il nome del file che si desidera aprire o creare.
 
 ### SYS_ ###
 
