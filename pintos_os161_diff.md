@@ -237,6 +237,29 @@ In OS161 sono implementati anche i **semafori interrupt-based**, che utilizzano 
 
 Come detto precedentemente, _Pintos_ è stato progettato principalmente per scopi didattici e per aiutare gli studenti a comprendere i concetti chiave dei sistemi operativi. Per questo progetto abbiamo scelto di focalizzarci sull'implementazione di alcune system calls poichè in Pintos non sono gestite per semplicità.
 
+In `src/lib/user/syscall.c` è presente un insieme di macro e funzioni che semplificano la chiamata alle system calls in _Pintos_, rendendo più agevole il passaggio degli argomenti necessari e la gestione dei risultati restituiti dalle system calls. 
+
+Le macro `syscall0`, `syscall1`, `syscall2`, e `syscall3` sono definite per le system calls con 0, 1, 2 o 3 argomenti. Ogni macro accetta il numero di system call (`NUMBER`) come primo argomento, seguito da eventuali argomenti necessari per la specifica chiamata di sistema. Queste macro generano il codice assembly necessario per effettuare la chiamata di sistema, passando il numero di sistema e gli argomenti all'interrupt handler (`int $0x30`) e restituendo il valore di ritorno della chiamata di sistema. Ci sono funzioni wrapper definite, come `halt`, `exit`, `exec`, `wait`, `create`, `remove`, ecc., che utilizzano queste macro per effettuare le chiamate di sistema. Queste funzioni semplificano ulteriormente l'utilizzo delle system calls, in quanto gli sviluppatori possono utilizzarle come interfacce più familiari.
+
+```c
+#define syscall0(NUMBER)                                        \
+        ({                                                      \
+          int retval;                                           \
+          asm volatile                                          \
+            ("pushl %[number]; int $0x30; addl $4, %%esp"       \
+               : "=a" (retval)                                  \
+               : [number] "i" (NUMBER)                          \
+               : "memory");                                     \
+          retval;                                               \
+        })
+
+void halt (void) {
+  syscall0 (SYS_HALT);
+  NOT_REACHED ();
+}
+```
+Ad esempio, quando si chiama la `halt()`, il sistema eseguirà la chiamata di sistema corrispondente a `SYS_HALT` definendo il numero di sistema appropriato e passando gli argomenti necessari. 
+
 Le system calls definite nativamente in Pintos in `src/lib/syscall-nr.h` sono:
 
  ```c
@@ -270,22 +293,34 @@ enum
 Noi abbiamo scelto di implementare:
 + SYS_HALT
 + SYS_EXIT
++ SYS_KILL
++ SYS_WRITE
++ SYS_OPEN
++ SYS_CLOSE
 + ...
 + ...
 
 Le implementazioni sono state aggiunte in `src/userprog/syscall.c` e gestite nella `syscall_handler` tramite uno switch-case in base al numero di syscall.  
 
 ```c
+void syscall_init (void) {
+  //Interrupt handler
+  intr_register_int (0x30, 3, INTR_ON, syscall_handler, "syscall");
+}
+
 static void syscall_handler (struct intr_frame *f) {
 
   int *ptr = f->esp;
+
   int syscall_number = *ptr;
 
   switch (syscall_number) {
+
     case SYS_HALT:
       /* ... */
       break;
-		case SYS_EXIT:
+    
+    case SYS_EXIT:
       /* ... */
       break;
 
@@ -294,9 +329,21 @@ static void syscall_handler (struct intr_frame *f) {
     default:
       // Numero System Call non valido    
       break;
-	}
+  }
 }
 ```
+La `syscall_handler` riceve come parametro `f`, un puntatore ad una `struct intr_frame`, che contiene informazioni sullo stato del thread quando si verifica un'interrupt o una system call. Il parametro `f->esp` rappresenta l'indirizzo nello stack del thread corrente in cui è memorizzato l'argomento per la system call, ovvero il numero che identifica la chiamata di sistema e gli eventuali parametri passati a tale chiamata.
+
+La funzione `syscall_handler` si occupa essenzialmente della gestione delle chiamate di sistema e di estrarre i parametri dalle posizioni corrette nello stack e quindi decidere quale system call eseguire in base al numero di sistema passato come primo parametro.
+
+In ogni `case` relativo ad una system call, abbiamo verificato con una funzione `check` la validità di un indirizzo utente (user address), eseguendo 2 controlli:
+
+1. Si verifica che l'indirizzo utente sia inferiore a `PHYS_BASE`, che rappresenta il limite superiore degli indirizzi fisici a cui un processo utente può accedere. L'obiettivo di questo controllo è assicurarsi che l'indirizzo utente sia nella porzione valida dello spazio di indirizzamento. 
+
+2. Si verifica che l'indirizzo utente sia mappato nel page directory del thread corrente. In _Pintos_, ogni thread ha un page directory che contiene le mappe tra gli indirizzi virtuali degli utenti e gli indirizzi fisici corrispondenti. Il controllo `pagedir_get_page` verifica se l'indirizzo utente specificato è presente in tale mappa.
+
+Questa funzione restituisce `true` se l'indirizzo utente passato come argomento è valido, oppure `false` in caso contrario. Ciò è utile per previene l'accesso a indirizzi di memoria non validi o non autorizzati da parte dei processi utenti.
+
 I prototipi delle system calls implementate sono stati aggiunti in `src/userprog/syscall.h`
 
 ### SYS_HALT ###
@@ -322,6 +369,9 @@ void exit (int status){
 ```
 Il parametro `status` è il codice di uscita del processo che sta terminando e verrà restituito al processo genitore per indicare lo stato di terminazione del processo.
 
+### SYS_KILL ###
+
+### SYS_WRITE ###
 
 ### SYS_OPEN ###
 
@@ -337,7 +387,7 @@ void open (const char * file){
 
 Il parametro `file` rappresenta il nome del file che si desidera aprire o creare.
 
-### SYS_ ###
+### SYS_CLOSE ###
 
 ### SYS_ ###
 
