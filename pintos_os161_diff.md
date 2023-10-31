@@ -437,3 +437,15 @@ Il parametro `file` rappresenta il nome del file che si desidera aprire o creare
 ### SYS_ ###
 
 ### SYS_ ###
+
+## TEST ##
+
+In _Pintos_ sono già disponibili dei test per verificare il funzionamento corretto delle system calls.
+I test, scritti in C, si trovano in `src/tests/userprog` e definiscono un `test_main` per effettuare chiamate di sistema e stampare l'output.
+
+Ogni test ha bisogno di un file `.ck`, che è uno script `Perl` che verifica l'output del programma di test. In questo script occorre utilizzare le subroutine definite in `tests/tests.pm`, come `pass` per stampare il messaggio "PASS" e informare dell'esito positivo del test. 
+
+L'esecuzione dei test genera dei file di errors, output e result in `src/userprog/build/tests/userprog`. 
+
+Esempio Exit test superato
+![exit_test](./images/exit_test.png)
