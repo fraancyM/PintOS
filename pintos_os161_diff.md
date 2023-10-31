@@ -332,19 +332,40 @@ static void syscall_handler (struct intr_frame *f) {
   }
 }
 ```
-La `syscall_handler` riceve come parametro `f`, un puntatore ad una `struct intr_frame`, che contiene informazioni sullo stato del thread quando si verifica un'interrupt o una system call. Il parametro `f->esp` rappresenta l'indirizzo nello stack del thread corrente in cui è memorizzato l'argomento per la system call, ovvero il numero che identifica la chiamata di sistema e gli eventuali parametri passati a tale chiamata.
 
-La funzione `syscall_handler` si occupa essenzialmente della gestione delle chiamate di sistema e di estrarre i parametri dalle posizioni corrette nello stack e quindi decidere quale system call eseguire in base al numero di sistema passato come primo parametro.
+La funzione `syscall_handler` si occupa essenzialmente della gestione delle chiamate di sistema e di estrarre i parametri dalle posizioni corrette nello stack e quindi decidere quale system call eseguire in base al numero di sistema passato come primo parametro. Questa funzione riceve come parametro `f`, un puntatore ad una `struct intr_frame`, che contiene informazioni sullo stato del thread quando si verifica un'interrupt o una system call. 
+
+Il parametro `f->esp` rappresenta l'indirizzo nello stack del thread corrente in cui è memorizzato l'argomento per la system call, ovvero il numero che identifica la chiamata di sistema e gli eventuali parametri passati a tale chiamata.
+
+In _Pintos_, quando si chiama una system call, è necessario collocare gli argomenti nello stack frame in posizioni specifiche. Ciò accade perchè c'è una discrepanza nello stack frame nella disposizione degli argomenti, in quanto è diversa in base al numero di argomenti passati alla chiamata di sistema. In particolare:
+
+1. **Chiamate di sistema con 1 argomento**: l'argomento viene collocato nello stack frame del thread in esecuzione a `esp + 1`.
+
+2. **Chiamata di sistema con 2 argomenti**: gli argomenti vengono collocati nello stack frame a `esp + 4` e `esp + 5`. Quindi, il primo argomento sarà a `esp + 4` e il secondo argomento a `esp + 5`.
+
+3. **Chiamata di sistema con 3 argomenti**: gli argomenti saranno posizionati a `esp + 5`, `esp + 6` e `esp + 7`. In questo caso, il primo argomento sarà a `esp + 5`, il secondo a `esp + 6` e il terzo a `esp + 7`.
+
+Questa convenzione semplifica la gestione degli argomenti per le diverse chiamate di sistema, garantendo che il kernel di Pintos possa accedere agli argomenti in modo coerente, indipendentemente dal numero di argomenti passati. 
 
 In ogni `case` relativo ad una system call, abbiamo verificato con una funzione `check` la validità di un indirizzo utente (user address), eseguendo 2 controlli:
 
-1. Si verifica che l'indirizzo utente sia inferiore a `PHYS_BASE`, che rappresenta il limite superiore degli indirizzi fisici a cui un processo utente può accedere. L'obiettivo di questo controllo è assicurarsi che l'indirizzo utente sia nella porzione valida dello spazio di indirizzamento. 
+1. `is_user_vaddr` (già esistente in `src/threads/vaddr.h`) verifica che l'indirizzo utente sia inferiore a `PHYS_BASE`, che rappresenta il limite superiore degli indirizzi fisici a cui un processo utente può accedere. L'obiettivo di questo controllo è assicurarsi che l'indirizzo utente sia nella porzione valida dello spazio di indirizzamento. 
 
-2. Si verifica che l'indirizzo utente sia mappato nel page directory del thread corrente. In _Pintos_, ogni thread ha un page directory che contiene le mappe tra gli indirizzi virtuali degli utenti e gli indirizzi fisici corrispondenti. Il controllo `pagedir_get_page` verifica se l'indirizzo utente specificato è presente in tale mappa.
+2. `pagedir_get_page` (già esistente in `src/userprog/pagedir.c`) verifica che l'indirizzo utente sia mappato nel page directory del thread corrente. In _Pintos_, ogni thread ha un page directory che contiene le mappe tra gli indirizzi virtuali degli utenti e gli indirizzi fisici corrispondenti. Il controllo `pagedir_get_page` restituisce l'indirizzo virtuale del kernel corrispondente a quell'indirizzo fisico, oppure un puntatore nullo se non è mappato.
 
-Questa funzione restituisce `true` se l'indirizzo utente passato come argomento è valido, oppure `false` in caso contrario. Ciò è utile per previene l'accesso a indirizzi di memoria non validi o non autorizzati da parte dei processi utenti.
+La funzione `check` restituisce `true` se l'indirizzo utente passato come argomento è valido, oppure `false` in caso contrario. Ciò è utile per previene l'accesso a indirizzi di memoria non validi o non autorizzati da parte dei processi utenti.
 
-I prototipi delle system calls implementate sono stati aggiunti in `src/userprog/syscall.h`
+```c
+// Funzione per verificare se l'indirizzo è valido
+bool check(void *addr) {
+
+    if (is_user_vaddr(addr) == true &&
+        pagedir_get_page(thread_current()->pagedir, addr)!=NULL)
+        return true;
+    else
+        return false;
+}
+```
 
 ### SYS_HALT ###
 
@@ -363,8 +384,32 @@ La system call EXIT è una chiamata di sistema utilizzata per terminare un proce
 ```c
 void exit (int status){
 
-// continuare
+    /* Per gestire il processo di terminazione di un thread,
+    devo memorizzare il valore di uscita, notificare il processo genitore (se in attesa),
+    e terminare il thread corrente */
 
+    /* Memorizzo il valore di uscita del thread che può essere recuperato dal processo genitore.*/
+    struct thread *cur = thread_current ();
+    cur->exit_code = status;
+    //printf("%s: exit(%d)\n", cur()->name, status);
+
+    struct thread *parent_thread = cur->parent;
+    struct child *children = get_child(cur->tid,parent_thread);
+
+    if(children->id == cur->tid ){
+        children->used = 1;
+        children->ret_val = status; //Valore di ritorno del figlio
+
+        /* Se il genitore sta aspettando il completamento del thread figlio,
+        occorre svegliare il genitore con sema_up e notificare che il figlio ha terminato
+        per consentirgli di continuare l'esecuzione.
+        waiton_child è l'id del thread in attesa */
+        if(parent_thread->waiton_child == cur->tid)
+            sema_up(&parent_thread->child_sem);
+    }
+
+    //il thread ha completato la sua esecuzione, posso terminare e liberare le risorse associate al thread
+    thread_exit();
 }
 ```
 Il parametro `status` è il codice di uscita del processo che sta terminando e verrà restituito al processo genitore per indicare lo stato di terminazione del processo.
