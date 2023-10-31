@@ -391,7 +391,7 @@ void exit (int status){
     /* Memorizzo il valore di uscita del thread che può essere recuperato dal processo genitore.*/
     struct thread *cur = thread_current ();
     cur->exit_code = status;
-    //printf("%s: exit(%d)\n", cur()->name, status);
+    printf("%s: exit(%d)\n", cur->name, status);
 
     struct thread *parent_thread = cur->parent;
     struct child *children = get_child(cur->tid,parent_thread);
