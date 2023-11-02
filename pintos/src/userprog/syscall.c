@@ -59,9 +59,9 @@ syscall_handler (struct intr_frame *f)
         exit(*(ptr+1)); //exit ha 1 argomento --> ptr+1
         break;
 
-    /*case SYS_KILL:
+    case SYS_KILL:
         kill();
-        break;*/
+        break;
 
     case SYS_WRITE:
         if (check(ptr+5)==false || check(ptr+6)==false ||

@@ -69,6 +69,13 @@ halt (void)
 }
 
 void
+kill (void) 
+{
+  syscall0 (SYS_KILL);
+  NOT_REACHED ();
+}
+
+void
 exit (int status)
 {
   syscall1 (SYS_EXIT, status);
