@@ -297,7 +297,7 @@ Noi abbiamo scelto di implementare:
 + SYS_WRITE
 + SYS_OPEN
 + SYS_CLOSE
-+ ...
++ SYS_CREATE
 + ...
 
 Le implementazioni sono state aggiunte in `src/userprog/syscall.c` e gestite nella `syscall_handler` tramite uno switch-case in base al numero di syscall.  
@@ -367,6 +367,8 @@ bool check(void *addr) {
 }
 ```
 
+## SYSTEM CALLS IMPLEMENTATE ##
+
 ### SYS_HALT ###
 
 La syscall HALT è utilizzata per terminare l'esecuzione del sistema operativo e spegnere il computer o la macchina virtuale in cui il sistema operativo è in esecuzione. In sostanza, viene utilizzata per spegnere il sistema in modo controllato e si implementa richiamando semplicemente la `shutdown_power_off()`, funzione già esistente in _Pintos_. 
@@ -416,7 +418,62 @@ Il parametro `status` è il codice di uscita del processo che sta terminando e v
 
 ### SYS_KILL ###
 
+
+```c
+void kill(){
+  exit(-1);
+}
+```
+
 ### SYS_WRITE ###
+
+
+
+```c
+int write (int fd, const void *buff, unsigned size){
+
+    int num_bytes = -1; // Inizializzo il numero di byte scritti a -1
+
+    lock_acquire(&file_lock); // Acquisisco il lock per garantire l'accesso esclusivo ai file.
+
+    // STDOUT_FILENO = 1 in lib/stdio.h
+    if (fd == STDOUT_FILENO){ //Scrivo su standard output
+        putbuf(buff, size); //Scrivo il contenuto del buffer sulla console
+        num_bytes = size; // Imposto il numero di byte scritti come la dimensione del buffer
+    }
+    else {
+        struct file_desc *f_desc = get_fd(fd);
+        if(f_desc == NULL)
+            num_bytes = -1; // Se il file descriptor non esiste, inizializzo di nuovo a -1
+        else
+            num_bytes = file_write (f_desc->fp, buff, size); //file_write in filesys/file.c
+    }
+
+    lock_release(&file_lock);
+    
+    return num_bytes;
+}
+```
+
+```c
+struct file_desc *get_fd (int fd) {
+
+    struct thread *thread_corrente = thread_current();
+    struct list_elem *elemento_lista = list_begin(&thread_corrente->file_list);
+
+    while (elemento_lista != list_end(&thread_corrente->file_list)) {
+        struct file_desc *descrittore_file = list_entry(elemento_lista, struct file_desc, elem);
+
+        // Verifico se l'fd del descrittore di file corrente corrisponde all'fd cercato.
+        if (descrittore_file->fd == fd)
+            return descrittore_file;
+
+        elemento_lista = list_next(elemento_lista);
+    }
+
+    return NULL; // Restituisco NULL se l'fd non è stato trovato nella lista.
+}
+```
 
 ### SYS_OPEN ###
 
@@ -434,7 +491,7 @@ Il parametro `file` rappresenta il nome del file che si desidera aprire o creare
 
 ### SYS_CLOSE ###
 
-### SYS_ ###
+### SYS_CREATE ###
 
 ### SYS_ ###
 
@@ -449,3 +506,14 @@ L'esecuzione dei test genera dei file di errors, output e result in `src/userpro
 
 Esempio Exit test superato
 ![exit_test](./images/exit_test.png)
+
++ Test per la write
+
+  + bad-write
+  + bad-write2
+  + write-zero
+  + write-stdin
+  + write-bad-fd
+  + write-normal
+  + write-bad-ptr
+  + write-boundary

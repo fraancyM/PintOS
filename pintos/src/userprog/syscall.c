@@ -6,18 +6,28 @@
 
 //Aggiunte
 #include "process.h"
-#include "pagedir.h"
+//#include "pagedir.h"
 #include "threads/vaddr.h"
 #include "devices/shutdown.h"
-#include "filesys/filesys.h"
+//#include "filesys/filesys.h"
 
 static void syscall_handler (struct intr_frame *);
+
+// Prototipi system calls
 void halt(void);
-int open(const char * file);
+int open(const char *file);
 void exit(int status);
+void kill();
+int write(int fd, const void *buffer, unsigned size)
+
+void close(int fd)
+bool create(const char *file, unsigned initial_size)
 
 // Funzione per verificare se l'indirizzo è valido
 bool check (void *addr);
+
+// Funzione per file descriptor
+struct file_desc *get_fd (int fd);
 
 void
 syscall_init (void)
@@ -31,7 +41,7 @@ syscall_handler (struct intr_frame *f)
 {
   int *ptr = f->esp;
   if(check(ptr) == false)
-    exit(-1);
+    kill();
 
   int syscall_number = *ptr;
   ASSERT(sizeof(syscall_number) == 4 ); // x86
@@ -44,28 +54,49 @@ syscall_handler (struct intr_frame *f)
 
     case SYS_EXIT:
         if(check(ptr+1)==false)
-            exit(-1);
+            kill();
 
-        exit(*(ptr+1));
+        exit(*(ptr+1)); //exit ha 1 argomento --> ptr+1
+        break;
+
+    /*case SYS_KILL:
+        kill();
+        break;*/
+
+    case SYS_WRITE:
+        if (check(ptr+5)==false || check(ptr+6)==false ||
+        check (ptr+7)==false || check(*(ptr+6))==false)
+            kill();
+        f->eax = write(*(ptr+5),*(ptr+6),*(ptr+7)); //write ha 3 argomenti--> ptr+5,6,7
         break;
 
     case SYS_OPEN:
       if(!check (ptr+1) || !check(*(ptr+1)))
-        exit(-1);
-      f->eax = open (*(ptr+1));
+        kill();
+      f->eax = open (*(ptr+1));//open ha 1 argomento --> ptr+1
       break;
 
     default:
       // Numero System Call invalido, kill del processo
       printf("Invalid System Call number\n");
-      exit(-1);
+      kill();
       break;
   }
 }
 
 
-/* Implementazioni system calls */
+// Funzione per verificare se l'indirizzo è valido
+bool check(void *addr) {
 
+    if (is_user_vaddr(addr) == true &&
+        pagedir_get_page(thread_current()->pagedir,addr)!=NULL)
+        return true;
+    else
+        return false;
+}
+
+
+/* Implementazioni system calls */
 
 /* Shutdown Pintos */
 void halt (void){
@@ -120,12 +151,50 @@ void exit (int status){
     thread_exit();
 }
 
-// Funzione per verificare se l'indirizzo è valido
-bool check(void *addr) {
+/* Esco dal processo con code -1 */
+void kill(){
 
-    if (is_user_vaddr(addr) == true &&
-        pagedir_get_page(thread_current()->pagedir,addr)!=NULL)
-        return true;
-    else
-        return false;
+  exit(-1);
+}
+
+int write (int fd, const void *buff, unsigned size){
+
+    int num_bytes = -1; // Inizializzo il numero di byte scritti a -1
+
+    lock_acquire(&file_lock); // Acquisisco il lock per garantire l'accesso esclusivo ai file.
+
+    // STDOUT_FILENO‎ = 1 in lib/stdio.h
+    if (fd == STDOUT_FILENO){ //Scrivo su standard output
+        putbuf(buff, size); //Scrivo il contenuto del buffer sulla console
+        num_bytes = size; // Imposto il numero di byte scritti come la dimensione del buffer
+    }
+    else {
+        struct file_desc *f_desc = get_fd(fd);
+        if(f_desc == NULL)
+            num_bytes = -1; // Se il file descriptor non esiste, inizializzo di nuovo a -1
+        else
+            num_bytes = file_write (f_desc->fp, buff, size); //file_write in filesys/file.c
+    }
+
+    lock_release(&file_lock);
+
+    return num_bytes;
+}
+
+struct file_desc *get_fd (int fd) {
+
+    struct thread *thread_corrente = thread_current();
+    struct list_elem *elemento_lista = list_begin(&thread_corrente->file_list);
+
+    while (elemento_lista != list_end(&thread_corrente->file_list)) {
+        struct file_desc *descrittore_file = list_entry(elemento_lista, struct file_desc, elem);
+
+        // Verifico se l'fd del descrittore di file corrente corrisponde all'fd cercato.
+        if (descrittore_file->fd == fd)
+            return descrittore_file;
+
+        elemento_lista = list_next(elemento_lista);
+    }
+
+    return NULL; // Restituisco NULL se l'fd non è stato trovato nella lista.
 }
