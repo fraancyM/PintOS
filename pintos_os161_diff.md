@@ -482,14 +482,50 @@ La system call OPEN è una chiamata di sistema utilizzata nei sistemi operativi 
 ```c
 void open (const char * file){
 
-// continuare
+  lock_acquire(&file_lock);  // acquisco il lock
+  struct file *file_p = filesys_open(file);   // apertura del file
+  lock_release(&file_lock);  // rilascio del lock
 
+  if(file_p == NULL)  // controllo se il file è stato aperto con successos
+    return -1;
+
+  struct file_desc * file_d = malloc (sizeof(struct file_desc)); // alloco dinamicamente una struttura dati che tiene traccia delle informazioni relative al file aperto
+  file_d->fd = ++thread_current()->fd_count;  // viene assegnato un numero univoco (a ogni file aperto da questo thread)
+  file_d->fp = file_p;  // assegno il puntatore del file
+  list_push_front(&thread_current()->file_list, &file_d->elem);  // inserisco il file nella lista dei file aperti dal thread
+
+  return file_d->fd;  // restituisco il numero univoco (descrittore)
 }
 ```
 
 Il parametro `file` rappresenta il nome del file che si desidera aprire o creare.
 
 ### SYS_CLOSE ###
+
+La system call close è una funzione chiave nel sistema operativo Pintos che consente ai processi di gestire i file in modo appropriato e liberare le risorse associate ai file che non sono più necessarie. Questa funzione è parte integrante del sistema di gestione dei file in Pintos e svolge un ruolo importante nell'assicurarsi che i processi possano aprire, utilizzare e chiudere i file in modo corretto.
+
+```c
+void close (int fd)
+{
+  // Controllo se fd sia uguale a STDIN_FILENO o STDOUT_FILENO
+  if (fd == STDIN_FILENO || fd == STDOUT_FILENO) // vorrei evitare di effettuare operazioni su stdin o stdout
+    return;
+  
+  // Prendo il file equivalente a fd sotto forma di file_desc
+  struct file_desc * fd_el = get_fd(fd);
+
+  if (fd_el == NULL)	// se è nullo allora esco dalla funzione
+    return -1;
+  
+  lock_acquire(&file_lock);	// Acquisco il lock
+  file_close(fd_el->fp);	// Chiudo il file usando una sys function per i file
+  lock_release(&file_lock);
+
+  list_remove(&fd_el->elem);	// rimuovo il file dalla lista e quindi libero la memoria
+  free(fd_el);
+
+}
+```
 
 ### SYS_CREATE ###
 

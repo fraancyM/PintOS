@@ -18,10 +18,10 @@ void halt(void);
 int open(const char *file);
 void exit(int status);
 void kill();
-int write(int fd, const void *buffer, unsigned size)
+int write(int fd, const void *buffer, unsigned size);
 
-void close(int fd)
-bool create(const char *file, unsigned initial_size)
+void close(int fd);
+bool create(const char *file, unsigned initial_size);
 
 // Funzione per verificare se l'indirizzo è valido
 bool check (void *addr);
@@ -76,6 +76,12 @@ syscall_handler (struct intr_frame *f)
       f->eax = open (*(ptr+1));//open ha 1 argomento --> ptr+1
       break;
 
+    case SYS_CLOSE:
+      if (!check(ptr+1))
+        kill();
+      close(*(ptr+1));
+      break;
+
     default:
       // Numero System Call invalido, kill del processo
       printf("Invalid System Call number\n");
@@ -113,12 +119,34 @@ int open(const char * file)
   if(file_p == NULL)  // controllo se il file è stato aperto con successos
     return -1;
 
-  struct file_desc * file_desc = malloc (sizeof(struct file_desc)); // alloco dinamicamente una struttura dati che tiene traccia delle informazioni relative al file aperto
-  file_desc->fd = ++thread_current()->fd_count;  // viene assegnato un numero univoco (a ogni file aperto da questo thread)
-  file_desc->fp = file_p;  // assegno il puntatore del file
-  list_push_front(&thread_current()->file_list, &file_desc->elem);  // inserisco il file nella lista dei file aperti dal thread
+  struct file_desc * file_d = malloc (sizeof(struct file_desc)); // alloco dinamicamente una struttura dati che tiene traccia delle informazioni relative al file aperto
+  file_d->fd = ++thread_current()->fd_count;  // viene assegnato un numero univoco (a ogni file aperto da questo thread)
+  file_d->fp = file_p;  // assegno il puntatore del file
+  list_push_front(&thread_current()->file_list, &file_d->elem);  // inserisco il file nella lista dei file aperti dal thread
 
-  return file_desc->fd;  // restituisco il numero univoco (descrittore)
+  return file_d->fd;  // restituisco il numero univoco (descrittore)
+}
+
+/* Chiude il file descrittore fd */
+void close (int fd)
+{
+  // Controllo se fd sia uguale a STDIN_FILENO o STDOUT_FILENO
+  if (fd == STDIN_FILENO || fd == STDOUT_FILENO) // vorrei evitare di effettuare operazioni su stdin o stdout
+    return;
+  
+  // Prendo il file equivalente a fd sotto forma di file_desc
+  struct file_desc * fd_el = get_fd(fd);
+
+  if (fd_el == NULL)	// se è nullo allora esco dalla funzione
+    return -1;
+  
+  lock_acquire(&file_lock);	// Acquisco il lock
+  file_close(fd_el->fp);	// Chiudo il file usando una sys function per i file
+  lock_release(&file_lock);
+
+  list_remove(&fd_el->elem);	// rimuovo il file dalla lista e quindi libero la memoria
+  free(fd_el);
+
 }
 
 void exit (int status){
