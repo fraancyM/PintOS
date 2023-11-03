@@ -90,7 +90,6 @@ syscall_handler (struct intr_frame *f)
   }
 }
 
-
 // Funzione per verificare se l'indirizzo è valido
 bool check(void *addr) {
 
@@ -101,7 +100,6 @@ bool check(void *addr) {
         return false;
 }
 
-
 /* Implementazioni system calls */
 
 /* Shutdown Pintos */
@@ -109,6 +107,7 @@ void halt (void){
   shutdown_power_off(); //Funzione già esistente in Pintos
 }
 
+/* Apre il file */
 int open(const char * file)
 {
   // finire di implementare
