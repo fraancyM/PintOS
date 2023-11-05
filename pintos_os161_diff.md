@@ -553,3 +553,22 @@ Esempio Exit test superato
   + write-normal
   + write-bad-ptr
   + write-boundary
+
++ Test per la open
+
+  + open-bad
+  + open-boundary 
+  + open-empty
+  + open-missing 
+  + open-normal
+  + open-null
+  + open-twice
+
++ Test per la close
+ 
+  + close-bad
+  + close-normal: questo test fa una chiamata a check_expected con un argomento che è una lista di stringhe. Le righe seguenti, fino a quando si trova nuovamente la stringa EOF, sono trattate come parte di questa stringa. Queste istruzioni rappresentano una sequenza di operazioni che coinvolgono l'apertura e la chiusura di un file chiamato "sample.txt". Nella riga "close-normal: exit(0)"
+si indica che quando il test raggiunge lo stato "close-normal", dovrebbe terminare con un codice di uscita 0.
+  + close-stdin
+  + close-stdout
+  + close-twice
