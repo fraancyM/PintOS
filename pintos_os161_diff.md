@@ -571,3 +571,19 @@ Esempio Exit test superato
   + close-stdin
   + close-stdout
   + close-twice
+
+## Funzionamento di una chiamata ad una syscall in Pintos ##
+
+1) Interrupts e Trap Gates: Quando un programma utente esegue una system call, si verifica un'interruzione (interrupt) della CPU. In Pintos, ciò può essere fatto utilizzando una trap gate, che è un tipo di descrittore di interruzione che indica alla CPU di passare il controllo a una particolare routine quando si verifica un'interruzione specifica.
+
+2) Interruzione del Timer: In Pintos, spesso si utilizza un timer periodico per generare interruzioni regolari. Quando il timer genera un'interruzione, il controllo passa al gestore delle interruzioni del timer.
+
+3) Salvataggio dello stato: Il gestore delle interruzioni salva lo stato corrente della CPU, inclusi registri importanti, nell'area di memoria chiamata stack kernel. Questo è necessario per garantire che il sistema possa riprendere l'esecuzione dal punto in cui è stata interrotta.
+
+4) Chiamata di sistema: Una volta che lo stato è stato salvato, il gestore delle interruzioni determina il motivo dell'interruzione. Nel caso di una system call, il gestore delle interruzioni passa il controllo a una funzione specifica per la system call corrente.
+
+5) Dispatcher delle System Call: Il dispatcher delle system call è responsabile di identificare quale system call è stata richiesta e di passare il controllo alla routine corrispondente.
+
+6) Esecuzione della System Call: La routine della system call esegue le azioni richieste, che possono includere l'accesso ai parametri forniti dall'utente, l'esecuzione di operazioni di sistema, e così via.
+
+7) Ripristino dello stato e Ritorno all'Utente: Dopo l'esecuzione della system call, lo stato della CPU viene ripristinato, e il controllo viene restituito al programma utente.
