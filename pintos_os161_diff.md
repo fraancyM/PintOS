@@ -556,13 +556,13 @@ Esempio Exit test superato
 
 + Test per la open
 
-  + open-bad
-  + open-boundary
-  + open-empty
-  + open-missing
+  + open-bad: il test è progettato per garantire che l'applicazione gestisca correttamente una situazione in cui viene passato un puntatore non valido alla chiamata di sistema open
+  + open-boundary: Il test è progettato per verificare il comportamento dell'applicazione nell'apertura di un file manipolato attraverso un confine di memoria.
+  + open-empty: Il test è progettato per verificare il comportamento dell'applicazione nell'apertura di un file vuoto.
+  + open-missing: Il test è progettato per verificare il comportamento dell'applicazione nell'apertura di un file non esistente.
   + open-normal: questo test fa una chiamata a check_expected con un argomento che è una lista di stringhe. Le righe seguenti, fino a quando si trova nuovamente la stringa EOF, sono trattate come parte di questa stringa. Le istruzioni seguenti sono molto semplici e rappresentano una sequenza in due fasi: "(open-normal) begin" e "(open-normal) end". open-normal: exit(0) è un'annotazione che indica che quando il test raggiunge lo stato "open-normal", dovrebbe terminare con un codice di uscita 0.
-  + open-null
-  + open-twice
+  + open-null: Il test è progettato per verificare il comportamento dell'applicazione nell'apertura di un file nullo.
+  + open-twice: Il test è progettato per verificare il comportamento dell'applicazione nella duplice apertura di uno stesso file.
 
 + Test per la close
  
