@@ -566,11 +566,11 @@ Esempio Exit test superato
 
 + Test per la close
  
-  + close-bad
+  + close-bad: Il primo blocco testa una situazione in cui l'operazione di chiusura ha successo (exit(0)), mentre il secondo blocco simula un caso in cui la chiusura del file descriptor fallisce (exit(-1)). Infine, il test pass; indica che il test è stato superato con successo.
   + close-normal: questo test fa una chiamata a check_expected con un argomento che è una lista di stringhe. Le righe seguenti, fino a quando si trova nuovamente la stringa EOF, sono trattate come parte di questa stringa. Queste istruzioni rappresentano una sequenza di operazioni che coinvolgono l'apertura e la chiusura di un file chiamato "sample.txt". Nella riga "close-normal: exit(0)" si indica che quando il test raggiunge lo stato "close-normal", dovrebbe terminare con un codice di uscita 0.
-  + close-stdin
-  + close-stdout
-  + close-twice
+  + close-stdin: testa l'operazione di chiusura del file descriptor stdin (close-stdin)
+  + close-stdout: testa l'operazione di chiusura del file descriptor stdout (close-stdout)
+  + close-twice:  testa la gestione della chiusura ripetuta di un file (sample.txt) nel contesto di un file descriptor specifico (close-twice). Nel primo blocco di test, si apre il file sample.txt, lo si chiude una volta e poi si tenta di chiuderlo nuovamente. Il test indica che questa sequenza di operazioni dovrebbe terminare correttamente (exit code 0).
 
 ## Funzionamento di una chiamata ad una syscall in Pintos ##
 
