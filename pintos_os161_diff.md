@@ -545,8 +545,6 @@ Esempio Exit test superato
 
 + Test per la write
 
-  + bad-write
-  + bad-write2
   + write-zero
   + write-stdin
   + write-bad-fd
@@ -571,6 +569,24 @@ Esempio Exit test superato
   + close-stdin: testa l'operazione di chiusura del file descriptor stdin (close-stdin)
   + close-stdout: testa l'operazione di chiusura del file descriptor stdout (close-stdout)
   + close-twice:  testa la gestione della chiusura ripetuta di un file (sample.txt) nel contesto di un file descriptor specifico (close-twice). Nel primo blocco di test, si apre il file sample.txt, lo si chiude una volta e poi si tenta di chiuderlo nuovamente. Il test indica che questa sequenza di operazioni dovrebbe terminare correttamente (exit code 0).
+
+  + Test per la read
+
+  + read-zero
+  + read-bad-fd
+  + read-normal
+  + read-stdout
+  + read-bad-ptr
+  + read-boundary
+
+  + Test per la create
+
+  + create-long
+  + create-null
+  + create-bound
+  + create-empty
+  + create-exists
+  + create-normal
 
 ## Funzionamento di una chiamata ad una syscall in Pintos ##
 
