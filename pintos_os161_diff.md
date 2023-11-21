@@ -298,7 +298,8 @@ Noi abbiamo scelto di implementare:
 + SYS_OPEN
 + SYS_CLOSE
 + SYS_CREATE
-+ ...
++ SYS_READ
++ SYS_FILESIZE
 
 Le implementazioni sono state aggiunte in `src/userprog/syscall.c` e gestite nella `syscall_handler` tramite uno switch-case in base al numero di syscall.  
 
@@ -502,7 +503,7 @@ Il parametro `file` rappresenta il nome del file che si desidera aprire o creare
 
 ### SYS_CLOSE ###
 
-La system call close è una funzione chiave nel sistema operativo Pintos che consente ai processi di gestire i file in modo appropriato e liberare le risorse associate ai file che non sono più necessarie. Questa funzione è parte integrante del sistema di gestione dei file in Pintos e svolge un ruolo importante nell'assicurarsi che i processi possano aprire, utilizzare e chiudere i file in modo corretto. Quando un processo ha finito di utilizzare il file o non ne ha più bisogno, può chiamare la chiamata di sistema close per chiudere il file. Questo è il punto in cui entra in gioco sys_close.
+La system call CLOSE  è una funzione chiave nel sistema operativo Pintos che consente ai processi di gestire i file in modo appropriato e liberare le risorse associate ai file che non sono più necessarie. Questa funzione è parte integrante del sistema di gestione dei file in Pintos e svolge un ruolo importante nell'assicurarsi che i processi possano aprire, utilizzare e chiudere i file in modo corretto. Quando un processo ha finito di utilizzare il file o non ne ha più bisogno, può chiamare la chiamata di sistema close per chiudere il file. Questo è il punto in cui entra in gioco sys_close.
 
 ```c
 void close (int fd)
@@ -529,7 +530,78 @@ void close (int fd)
 
 ### SYS_CREATE ###
 
-### SYS_ ###
+La syscall CREATE in Pintos è progettata per creare un nuovo file: consente a un processo utente di creare un nuovo file nel file system. Quando un processo ha bisogno di creare un nuovo file può chiamare la chiamata di sistema create per creare il file specificando il nome e la sua dimensione iniziale. Questo è il punto in cui entra in gioco sys_create.
+
+```c
+//crea un nuono file|non lo apre
+bool create (const char * file, unsigned initial_size)
+{
+  if (file == NULL) //controlla se il nome del file è nullo
+    return -1;//restituisce un valore non valido (-1) se il nome del file è nullo
+
+  lock_acquire(&file_lock); //acquisisce il lock per evitare conflitti dovuti alla concorrenza
+  int ret = filesys_create(file,initial_size); //Chiama la funzione di sistema filesys_create (filesys/filesys.c) per creare un nuovo file con il nome specificato e la dimensione iniziale specificata.
+  lock_release(&file_lock); //rilascia il lock
+
+  return ret; //restituisce il valore di ritorno di filesys_create -> booleano di successo
+}
+```
+
+### SYS_READ###
+
+La syscall READ in Pintos è utilizzata per leggere dati da un file descriptor in un processo. La chiamata di sistema read è molto importante in Pintos, in quanto consente ai programmi utente di leggere i dati da file: senza di essa i programmi utente non sarebbero in grado di leggere file, il che sarebbe un grosso limite.
+La syscall read prima controlla che il descrittore del file sia valido e che il buffer sia sufficientemente grande, acquisisce il blocco sul descrittore del file per impedire ad altri thread di accedere al file mentre viene letto ed infine, chiama la funzione file_read per leggere i dati dal file nel buffer.
+
+```c
+//legge il numero di byte da un file aperto in un buffer
+int read (int fd, void * buffer, unsigned length)
+{
+  unsigned int len =0; //variabile per tenere traccia della lunghezza effettiva letta
+
+  if (fd == STDIN_FILENO) //Se il file descriptor è stdin (standard input)
+  {
+    while (len < length) //Legge i byte da input_getc() fino a raggiungere la lunghezza specificata
+    {
+      *((char *)buffer+len) = input_getc();
+      len++;
+    }
+    return len; //restituisce la lunghezza effettiva letta
+  }
+
+  struct file_desc * fd_elem = get_fd(fd); //se il fd non è stdin, ottiene l'elemnto del file descriptor
+
+  if (fd_elem == NULL) //se l'elemento non è valido restituisce errore (-1)
+    return -1;
+
+  /*L'elemento è valido*/
+
+  lock_acquire(&file_lock); //acquisisco il lock per evitare problematiche legate alla concorrenza
+  len = file_read(fd_elem->fp,buffer,length);//chiama la funzione di sistema file_read (filesys/file.c) per leggere il file
+  lock_release(&file_lock);//rilascia il lock
+
+  return len; //restituisce la lunghezza effettiva letta dal file
+}
+```
+
+### SYS_FILESIZE###
+
+La syscall FILESIZE è una system call di molta importanza in Pintos in quanto consente di determinare la dimensione di un file in Bytes. La chiamata di sistema filesize è anche molto importante per poter avere il corretto funzionamento della syscall READ.
+
+```c
+//restiruisce la lunghezza del file
+int filesize (int fd)
+{
+  struct file_desc * fd_elem = get_fd(fd);//prendo l'elemento della lista dei file corrispondente al descrittore fd
+
+  if(fd_elem == NULL)//controllo che l'elemento non esiste
+    return -1;//ritorno errore (-1)
+
+  lock_acquire(&file_lock);//acquisisco il lock per evitare problematiche legate alla concorrenza
+  int length = file_length(fd_elem->fp); //Ottengo la lunghezza del file con file_length (filesys/file.c)
+  lock_release(&file_lock);//rilascio il lock
+  return length;//ritorno la lunghezza del file
+}
+```
 
 ## TEST ##
 
@@ -568,25 +640,26 @@ Esempio Exit test superato
   + close-normal: questo test fa una chiamata a check_expected con un argomento che è una lista di stringhe. Le righe seguenti, fino a quando si trova nuovamente la stringa EOF, sono trattate come parte di questa stringa. Queste istruzioni rappresentano una sequenza di operazioni che coinvolgono l'apertura e la chiusura di un file chiamato "sample.txt". Nella riga "close-normal: exit(0)" si indica che quando il test raggiunge lo stato "close-normal", dovrebbe terminare con un codice di uscita 0.
   + close-stdin: testa l'operazione di chiusura del file descriptor stdin (close-stdin)
   + close-stdout: testa l'operazione di chiusura del file descriptor stdout (close-stdout)
-  + close-twice:  testa la gestione della chiusura ripetuta di un file (sample.txt) nel contesto di un file descriptor specifico (close-twice). Nel primo blocco di test, si apre il file sample.txt, lo si chiude una volta e poi si tenta di chiuderlo nuovamente. Il test indica che questa sequenza di operazioni dovrebbe terminare correttamente (exit code 0).
+  + close-twice: testa la gestione della chiusura ripetuta di un file (sample.txt) nel contesto di un file descriptor specifico (close-twice). Nel primo blocco di test, si apre il file sample.txt, lo si chiude una volta e poi si tenta di chiuderlo nuovamente. Il test indica che questa sequenza di operazioni dovrebbe terminare correttamente (exit code 0).
 
   + Test per la read
 
-  + read-zero
-  + read-bad-fd
-  + read-normal
-  + read-stdout
-  + read-bad-ptr
-  + read-boundary
+  + read-bad-fd: questo test cerca di leggere da descrittori di file invalidi. La chiamata di sistema read "deve fallire silenziosamente o terminare il processo con il codice di uscita -1". (errore read)
+  + read-bad-ptr: questo test cerca di leggere da un puntatore di memoria invalido. L'aspettativa è che la chiamata di sistema read con un puntatore di memoria invalido dovrebbe causare la terminazione del processo di test con un codice di uscita -1. (errore read)
+  + read-boundary: questo test verifica se è gestita correttamente la lettura di dati che attraversano il confine tra due pagine di memoria. (successo read)
+  + read-normal: questo test verifica che si sia in grado di leggere il file "sample.txt" in modo normale e verificare che il contenuto letto corrisponda al campione fornito (sample). Questo test è progettato per verificare la corretta implementazione della lettura di file. (successo read)
+  + read-stdout: questo test verifica la capacità di poter leggere da uno stream di output (stdout). (successo read)
+  + read-zero: questo test verifica come è gestita una lettura di 0 byte. L'aspettativa è che una lettura di 0 byte dovrebbe restituire 0 senza leggere effettivamente nulla dal file, e il buffer non dovrebbe essere modificato. (successo read)
 
   + Test per la create
 
-  + create-long
-  + create-null
-  + create-bound
-  + create-empty
-  + create-exists
-  + create-normal
+  + create-bad-ptr: questo test verifica che venga gestita correttamente la creazione di processi con "cattivi" puntatori o indirizzi non validi, terminando il processo di test con un codice di uscita specifico in caso di errore. (errore  create)
+  + create-bound: questo test verifica se si gestisce correttamente l'apertura di file quando i loro nomi attraversano i confini di pagina. (successo create)
+  + create-empty: questo test verifica come è gestita la creazione di un file quando viene passata una stringa vuota come nome. (errore create)
+  + create-exists: la creazione di un file con un nome già esistente dovrebbe fallire. Questo test verifica che venga gestita correttamente questa situazione. (errore create)
+  + create-long: la creazione di un file con un nome così lungo dovrebbe fallire, questo test verifica come è gestita questa situazione. (errore create)
+  + create-null: questo test tenta di creare un un file con puntatore nullo. (errore create)
+  + create-normal: questo test serve a verificare la capacità  di creare file ordinari e vuoti. (successo create)
 
 ## Funzionamento di una chiamata ad una syscall in Pintos ##
 

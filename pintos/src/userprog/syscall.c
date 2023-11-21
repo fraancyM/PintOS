@@ -9,7 +9,7 @@
 //#include "pagedir.h"
 #include "threads/vaddr.h"
 #include "devices/shutdown.h"
-//#include "filesys/filesys.h"
+#include "filesys/filesys.h"
 
 static void syscall_handler (struct intr_frame *);
 
@@ -22,6 +22,8 @@ int write(int fd, const void *buffer, unsigned size);
 
 void close(int fd);
 bool create(const char *file, unsigned initial_size);
+int read (int, void *, unsigned);
+int filesize (int fd);
 
 // Funzione per verificare se l'indirizzo è valido
 bool check (void *addr);
@@ -82,6 +84,24 @@ syscall_handler (struct intr_frame *f)
       close(*(ptr+1));
       break;
 
+    case SYS_CREATE:
+      if(!check(ptr+4) || !check(ptr+5) || !check(*(ptr+4)))
+        kill();
+      f->eax = create (*(ptr+4), *(ptr+5));//write ha 2 argomenti--> ptr+4,5
+      break;
+
+     case SYS_READ:
+      if (!check(ptr+5) || !check (ptr+6) || !check (ptr+7) || !check (*(ptr+6)))
+        kill();
+      f->eax=read(*(ptr+5),*(ptr+6),*(ptr+7));//read ha 3 argomenti--> ptr+5,6,7
+      break;
+
+    case SYS_FILESIZE:
+      if (!check(ptr+1))
+        kill();
+      f->eax = filesize(*(ptr+1));//filesize ha 1 argomento --> ptr+1
+      break;
+
     default:
       // Numero System Call invalido, kill del processo
       printf("Invalid System Call number\n");
@@ -110,7 +130,6 @@ void halt (void){
 /* Apre il file */
 int open(const char * file)
 {
-  // finire di implementare
   lock_acquire(&file_lock);  // acquisco il lock
   struct file *file_p = filesys_open(file);   // apertura del file
   lock_release(&file_lock);  // rilascio del lock
@@ -206,6 +225,64 @@ int write (int fd, const void *buff, unsigned size){
     lock_release(&file_lock);
 
     return num_bytes;
+}
+
+//crea un nuono file|non lo apre
+bool create (const char * file, unsigned initial_size)
+{
+  if (file == NULL) //controlla se il nome del file è nullo
+    return -1;//restituisce un valore non valido (-1) se il nome del file è nullo
+
+  lock_acquire(&file_lock); //acquisisce il lock per evitare conflitti dovuti alla concorrenza
+  int ret = filesys_create(file,initial_size); //Chiama la funzione di sistema filesys_create (filesys/filesys.c) per creare un nuovo file con il nome specificato e la dimensione iniziale specificata.
+  lock_release(&file_lock); //rilascia il lock
+
+  return ret; //restituisce il valore di ritorno di filesys_create -> booleano di successo
+}
+
+//legge il numero di byte da un file aperto in un buffer
+int read (int fd, void * buffer, unsigned length)
+{
+  unsigned int len =0; //variabile per tenere traccia della lunghezza effettiva letta
+
+  if (fd == STDIN_FILENO) //Se il file descriptor è stdin (standard input)
+  {
+    while (len < length) //Legge i byte da input_getc() fino a raggiungere la lunghezza specificata
+    {
+      *((char *)buffer+len) = input_getc();
+      len++;
+    }
+    return len; //restituisce la lunghezza effettiva leta
+  }
+
+
+  struct file_desc * fd_elem = get_fd(fd); //se il fd non è stdin, ottiene l'elemnto del file descriptor
+
+  if (fd_elem == NULL) //se l'elemento non è valido restituisce errore (-1)
+    return -1;
+
+  /*L'elemento è valido*/
+
+  lock_acquire(&file_lock); //acquisisco il lock per evitare problematiche legate alla concorrenza
+  len = file_read(fd_elem->fp,buffer,length);//chiama la funzione di sistema file_read (filesys/file.c) per leggere il file
+  lock_release(&file_lock);//rilascia il lock
+
+  return len; //restituisce la lunghezza effettiva letta dal file
+}
+
+//restiruisce la lunghezza del file
+int filesize (int fd)
+{
+  struct file_desc * fd_elem = get_fd(fd);//prendo l'elemento della lista dei file corrispondente al descrittore fd
+
+
+  if(fd_elem == NULL)//controllo che l'elemento non esiste
+    return -1;//ritorno errore (-1)
+
+  lock_acquire(&file_lock);//acquisisco il lock per evitare problematiche legate alla concorrenza
+  int length = file_length(fd_elem->fp); //Ottengo la lunghezza del file con file_length (filesys/file.c)
+  lock_release(&file_lock);//rilascio il lock
+  return length;//ritorno la lunghezza del file
 }
 
 struct file_desc *get_fd (int fd) {
