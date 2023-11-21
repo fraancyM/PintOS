@@ -547,7 +547,7 @@ bool create (const char * file, unsigned initial_size)
 }
 ```
 
-### SYS_READ###
+### SYS_READ ###
 
 La syscall READ in Pintos è utilizzata per leggere dati da un file descriptor in un processo. La chiamata di sistema read è molto importante in Pintos, in quanto consente ai programmi utente di leggere i dati da file: senza di essa i programmi utente non sarebbero in grado di leggere file, il che sarebbe un grosso limite.
 La syscall read prima controlla che il descrittore del file sia valido e che il buffer sia sufficientemente grande, acquisisce il blocco sul descrittore del file per impedire ad altri thread di accedere al file mentre viene letto ed infine, chiama la funzione file_read per leggere i dati dal file nel buffer.
@@ -583,7 +583,7 @@ int read (int fd, void * buffer, unsigned length)
 }
 ```
 
-### SYS_FILESIZE###
+### SYS_FILESIZE ###
 
 La syscall FILESIZE è una system call di molta importanza in Pintos in quanto consente di determinare la dimensione di un file in Bytes. La chiamata di sistema filesize è anche molto importante per poter avere il corretto funzionamento della syscall READ.
 
