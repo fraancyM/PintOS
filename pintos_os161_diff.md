@@ -642,7 +642,7 @@ Esempio Exit test superato
   + close-stdout: testa l'operazione di chiusura del file descriptor stdout (close-stdout)
   + close-twice: testa la gestione della chiusura ripetuta di un file (sample.txt) nel contesto di un file descriptor specifico (close-twice). Nel primo blocco di test, si apre il file sample.txt, lo si chiude una volta e poi si tenta di chiuderlo nuovamente. Il test indica che questa sequenza di operazioni dovrebbe terminare correttamente (exit code 0).
 
-  + Test per la read
++ Test per la read
 
   + read-bad-fd: questo test cerca di leggere da descrittori di file invalidi. La chiamata di sistema read "deve fallire silenziosamente o terminare il processo con il codice di uscita -1". (errore read)
   + read-bad-ptr: questo test cerca di leggere da un puntatore di memoria invalido. L'aspettativa è che la chiamata di sistema read con un puntatore di memoria invalido dovrebbe causare la terminazione del processo di test con un codice di uscita -1. (errore read)
@@ -651,7 +651,7 @@ Esempio Exit test superato
   + read-stdout: questo test verifica la capacità di poter leggere da uno stream di output (stdout). (successo read)
   + read-zero: questo test verifica come è gestita una lettura di 0 byte. L'aspettativa è che una lettura di 0 byte dovrebbe restituire 0 senza leggere effettivamente nulla dal file, e il buffer non dovrebbe essere modificato. (successo read)
 
-  + Test per la create
++ Test per la create
 
   + create-bad-ptr: questo test verifica che venga gestita correttamente la creazione di processi con "cattivi" puntatori o indirizzi non validi, terminando il processo di test con un codice di uscita specifico in caso di errore. (errore  create)
   + create-bound: questo test verifica se si gestisce correttamente l'apertura di file quando i loro nomi attraversano i confini di pagina. (successo create)
