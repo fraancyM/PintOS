@@ -676,3 +676,28 @@ Esempio Exit test superato
 6) Esecuzione della System Call: La routine della system call esegue le azioni richieste, che possono includere l'accesso ai parametri forniti dall'utente, l'esecuzione di operazioni di sistema, e così via.
 
 7) Ripristino dello stato e Ritorno all'Utente: Dopo l'esecuzione della system call, lo stato della CPU viene ripristinato, e il controllo viene restituito al programma utente.
+
+## Modifiche in process.c e process.h ##
+
+Il file "process.c" in Pintos gestisce la creazione, l'esecuzione e la terminazione dei processi nel sistema operativo. Contiene codice per inizializzare, avviare e gestire le attività dei processi, inclusi il caricamento dei programmi in memoria e la gestione dello stato dei processi.
+In particolare:
+
+1) Viene aggiunta una funzione chiamata "*get_child*" che serve per ottenere il processo figlio utilizzando l'ID del processo padre.
+
+2) E' stata modificata la funzione "*process_execute*", aggiungendo un pezzo di codice che estre il nome del processo da parametri riga di comando e lo copia in process_name. Inoltre, viene aggiunta anche la gestione della sincronizzazione tra un thread padre e il suo thread figlio grazie all'utilizzo di semafori (Se il thread padre raggiunge questa riga prima che il thread figlio incrementi il valore del semaforo (inizialmente 0), il thread padre si blocchera in attesa del caricamento da parte del thread figlio.) Viene posto anche un costrutto IF per verificare se il caricamento non è stato completato con successo tramite flag e ritorno errore in caso di caricamento fallito.
+
+3) Viene implementata la funzione "*process_wait*", che adesso aspetta la terminazione di un processo
+figlio specificato da child_tid. Se il processo figlio è ancora attivo, il padre si blocca fino a quando il figlio non termina. Una volta che il figlio termina, il padre deve recuperare il valore di ritorno del figlio, rimuovere il figlio dalla lista dei figli e restituire il valore di ritorno del figlio. In caso di errore (il padre non ha figli o il figlio specificato non esiste) ritorno -1.
+
+4) La funzione "*process_exit*" viene anch'essa modificata, in quanto adesso si cquisisce il lock per garantire l'accesso esclusivo alla risorsa condivisa, per poi scorrere la lista dei figli del thread corrente e dealloco la memoria associata a ciascun figlio (facendo la stessa cosa anche con i file aperti). 
+
+5) setup_stack ?
+
+6) parte su process.h ... 
+
+## Modifiche in thread.c e thread.h ##
+
+
+
+
+
