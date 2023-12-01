@@ -679,6 +679,7 @@ Esempio Exit test superato
 
 ## Modifiche in process.c e process.h ##
 
+### process.c ###
 Il file "process.c" in Pintos gestisce la creazione, l'esecuzione e la terminazione dei processi nel sistema operativo. Contiene codice per inizializzare, avviare e gestire le attività dei processi, inclusi il caricamento dei programmi in memoria e la gestione dello stato dei processi.
 In particolare:
 
@@ -693,11 +694,27 @@ figlio specificato da child_tid. Se il processo figlio è ancora attivo, il padr
 
 5) setup_stack ?
 
-6) parte su process.h ... 
+### Parte su process.h ... ###
 
 ## Modifiche in thread.c e thread.h ##
 
+### thread.c ###
+Il file thread.c gestisce la creazione, la gestione e lo scheduling dei thread nel sistema operativo. Contiene codice per la creazione dei thread, la sincronizzazione tra di essi e la gestione dello scambio della CPU tra i diversi thread in esecuzione. In particolare:
 
+1) Viene modificata la funzione "*thread_create*" in maniera tale che il thread che viene appena creato sappia dell'esistenza del suo "padre" (con " t->parent = thread_current()"), allo stesso tempo viene tenuta traccia dei file aperti dal thread e viene aggiunto il thread figlio alla lista dei figli del thread padre, permettendo al padre di tenerne traccia e gestirne l'esecuzione. 
 
+2) Viene modificata la funzione "*running_thread*", dove vengono inizializzate le strutture dati necessarie per gestire i thread figli e sincronizzare il thread padre con i suoi figli nel sistema operativo. La lista children viene utilizzata per tenere traccia dei thread figli del thread corrente, mentre il semaforo child_sem viene utilizzato per sincronizzare il thread padre con i suoi thread figli.
 
+### thread.h ###
 
+Vengono aggiunte le seguenti variabili:
+
+* _struct list file_list;_ è la lista dei file aperti dal thread
+* _int fd_count;_ tiene traccia del numero totale di file aperti dal thread.
+* _struct thread *parent;_ si passa dallo stato di ritorno al thread genitore quando il thread corrente termina l'esecuzione.
+* _struct list children;_ è la lista dei processi figlio del thread corrente. 
+* _bool production_flag;_ è un flag per segnalare al processo genitore che il processo figlio è stato caricato con successo, e quindi proseguire nell'esecuzione.
+* _struct semaphore production_sem;_ è un semaforo per far attendere al thread padre che il thread figlio inizi l'esecuzione.
+* _struct file *file;_ è un puntatore al file eseguibile associato al thread corrente.
+* _struct semaphore child_sem;_ è un semaforo che uso quando un thread attende un processo figlio.
+* _tid_t waiton_child;_ tiene traccia per quale thread figlio, il thread è in attesa.
