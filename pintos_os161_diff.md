@@ -692,13 +692,19 @@ figlio specificato da child_tid. Se il processo figlio è ancora attivo, il padr
 
 4) La funzione "*process_exit*" viene anch'essa modificata, in quanto adesso si cquisisce il lock per garantire l'accesso esclusivo alla risorsa condivisa, per poi scorrere la lista dei figli del thread corrente e dealloco la memoria associata a ciascun figlio (facendo la stessa cosa anche con i file aperti). 
 
-5) setup_stack ?
+5) La funzione "*setup_stack*" viene aggiornata per preparare lo spazio di memoria chiamato "stack" per un nuovo processo. Fa questo creando una pagina di memoria, organizzando gli argomenti passati al programma in modo da poter essere acceduti facilmente e sistemando i parametri necessari per l'avvio del programma all'interno dello stack. Alla fine, restituisce un valore che indica se l'operazione è riuscita o meno.
 
-### Parte su process.h ... ###
+### process.h ###
+
+Il file process.h in Pintos fornisce le dichiarazioni e le firme delle funzioni utilizzate per la gestione dei processi, inclusa la creazione, l'eliminazione e la gestione dello stato dei processi nel sistema operativo. In particolare:
+
+1) Vengono aggiunta la libreria stdlib.h e la struttura _child_ che mi serve per tenere traccia dei processi figlio
+e dei loro valori di ritorno.
 
 ## Modifiche in thread.c e thread.h ##
 
 ### thread.c ###
+
 Il file thread.c gestisce la creazione, la gestione e lo scheduling dei thread nel sistema operativo. Contiene codice per la creazione dei thread, la sincronizzazione tra di essi e la gestione dello scambio della CPU tra i diversi thread in esecuzione. In particolare:
 
 1) Viene modificata la funzione "*thread_create*" in maniera tale che il thread che viene appena creato sappia dell'esistenza del suo "padre" (con " t->parent = thread_current()"), allo stesso tempo viene tenuta traccia dei file aperti dal thread e viene aggiunto il thread figlio alla lista dei figli del thread padre, permettendo al padre di tenerne traccia e gestirne l'esecuzione. 
