@@ -721,9 +721,43 @@ _continuare_
 
 7) Ripristino dello stato e Ritorno all'Utente: Dopo l'esecuzione della system call, lo stato della CPU viene ripristinato, e il controllo viene restituito al programma utente.
 
-## Modifiche in process.c e process.h ##
+----
+metterei così
 
-### process.c ###
+integrare con la parte di sopra eventualmente
+
+----
+
+In Pintos, il funzionamento di una chiamata di sistema (syscall) è gestito attraverso una serie di passaggi:
+
+1. **Interrupt:**
+   - Quando un programma utente esegue un'istruzione che richiede un'operazione di sistema (come la lettura da un file o la scrittura su disco), si verifica un interrupt hardware o software.
+
+2. **Controllo nell'exception handler:**
+   - Una volta avviato l'interrupt, l'exception handler di Pintos, controlla il tipo di interrupt per determinare se si tratta di una chiamata di sistema.
+
+3. **Switch al Kernel Mode:**
+   - Se la chiamata di sistema viene riconosciuta, il sistema operativo passa dalla modalità user alla modalità kernel per eseguire il codice del kernel.
+
+4. **Identificazione della Syscall:**
+   - Il sistema operativo identifica il tipo specifico di chiamata di sistema richiesta, attraverso un numero di servizio o un codice specifico passato dai registri della CPU.
+
+5. **Esecuzione del codice del kernel:**
+   - Il kernel esegue il codice specifico per la chiamata di sistema richiesta.
+
+6. **Restituzione del controllo all'user Mode:**
+   - Dopo aver completato l'operazione richiesta, il kernel restituisce il controllo al programma utente, ripristinando la modalità utente.
+
+_Esempio di syscall che si muove dallo spazio utente allo spazio kernel in Pintos_
+![Esempio](./images/example_syscall_exit.png)
+
+
+## Modifiche preliminari al codice sorgente per il funzionamento delle system calls scelte da implementare ##
+
+### Modifiche in src/userprog ###
+
+**process.c**
+
 Il file "process.c" in Pintos gestisce la creazione, l'esecuzione e la terminazione dei processi nel sistema operativo. Contiene codice per inizializzare, avviare e gestire le attività dei processi, inclusi il caricamento dei programmi in memoria e la gestione dello stato dei processi.
 In particolare:
 
@@ -738,16 +772,16 @@ figlio specificato da child_tid. Se il processo figlio è ancora attivo, il padr
 
 5) La funzione "*setup_stack*" viene aggiornata per preparare lo spazio di memoria chiamato "stack" per un nuovo processo. Fa questo creando una pagina di memoria, organizzando gli argomenti passati al programma in modo da poter essere acceduti facilmente e sistemando i parametri necessari per l'avvio del programma all'interno dello stack. Alla fine, restituisce un valore che indica se l'operazione è riuscita o meno.
 
-### process.h ###
+**process.h**
 
 Il file process.h in Pintos fornisce le dichiarazioni e le firme delle funzioni utilizzate per la gestione dei processi, inclusa la creazione, l'eliminazione e la gestione dello stato dei processi nel sistema operativo. In particolare:
 
 1) Vengono aggiunta la libreria stdlib.h e la struttura _child_ che mi serve per tenere traccia dei processi figlio
 e dei loro valori di ritorno.
 
-## Modifiche in thread.c e thread.h ##
+### Modifiche in src/threads ###
 
-### thread.c ###
+**thread.c**
 
 Il file thread.c gestisce la creazione, la gestione e lo scheduling dei thread nel sistema operativo. Contiene codice per la creazione dei thread, la sincronizzazione tra di essi e la gestione dello scambio della CPU tra i diversi thread in esecuzione. In particolare:
 
@@ -755,7 +789,7 @@ Il file thread.c gestisce la creazione, la gestione e lo scheduling dei thread n
 
 2) Viene modificata la funzione "*running_thread*", dove vengono inizializzate le strutture dati necessarie per gestire i thread figli e sincronizzare il thread padre con i suoi figli nel sistema operativo. La lista children viene utilizzata per tenere traccia dei thread figli del thread corrente, mentre il semaforo child_sem viene utilizzato per sincronizzare il thread padre con i suoi thread figli.
 
-### thread.h ###
+**thread.h**
 
 Vengono aggiunte le seguenti variabili:
 
