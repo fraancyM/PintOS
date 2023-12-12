@@ -233,7 +233,32 @@ In OS161 sono implementati anche i **semafori interrupt-based**, che utilizzano 
 
 ### Condition variables ###
 
-# Sezione II: Implementazione di nuove funzionalità #
+
+
+# Sezione II #
+
+## INSTALLAZIONE SISTEMA OPERATIVO ##
+
+Inizialmente è stata configurata una macchina virtuale con il sistema operativo Ubuntu a 32 bit. Abbiamo poi scaricato il codice sorgente di Pintos dal sito ufficiale di Stanford (estratto tramite `tar -xzvf pintos.tar.gz`) e scaricato l'emulatore Qemu tramite `sudo apt-get install qemu`. 
+Occorreva poi indirizzare Qemu verso Pintos in uno script bash in modo da poter eseguire comandi Pintos. 
+
+$HOME: /home/francy
+$PINTOSHOME:/home/francy/osF14/pintos
+
+- **Aggiornamento della variabile di ambiente PATH:**
+è stata aggiunta la riga `PATH=$PINTOSHOME/src/utils:$PATH` in in `HOME/.bashrc` e riavviato il terminale con il comando `source /.bashrc`.
+
+- **GDBMACROS:**
+
+- **Compilazione delle Utilities:**
+abbiamo modificato in `src/utils/pintos-gdb`
+e `src/utils/Makefile` e compilato la directory utils:
+```bash
+cd pintos/src/utils
+make
+```
+
+## Implementazione di nuove funzionalità ##
 
 Come detto precedentemente, _Pintos_ è stato progettato principalmente per scopi didattici e per aiutare gli studenti a comprendere i concetti chiave dei sistemi operativi. Per questo progetto abbiamo scelto di focalizzarci sull'implementazione di alcune system calls poichè in Pintos non sono gestite per semplicità.
 
@@ -612,54 +637,73 @@ Ogni test ha bisogno di un file `.ck`, che è uno script `Perl` che verifica l'o
 
 L'esecuzione dei test genera dei file di errors, output e result in `src/userprog/build/tests/userprog`. 
 
+### Come runnare i test ###
+
+Per eseguire i test relativi alle system calls si entra nel percorso `src/userprog` e si lancia il comando `make`. In questo modo viene generata in `userprog` la cartella `build`, in cui viene compilato il kernel. Dal percorso `src/userprog/build` è possibile eseguire tutti i test disponibili con il comando `make check`, oppure può essere eseguito un test specifico nel seguente modo: `make tests/userprog/exit_test.result`
+
 Esempio Exit test superato
 ![exit_test](./images/exit_test.png)
 
-+ Test per la write
+#### Test eseguiti per verificare il funzionamento corretto delle system calls implementate: ####
 
-  + write-zero
-  + write-stdin
-  + write-bad-fd
-  + write-normal
-  + write-bad-ptr
-  + write-boundary
++ halt
++ exit
++ kill
++ write
 
-+ Test per la open
+  + **write-zero**: il test verifica il comportamento della syscall write quando si tenta di scrivere 0 byte in un file. Solitaente la syscall restituisce il numero effettivo di byte scritti o -1 in caso di errore. Nel caso in cui il numero di byte da scrivere sia 0, la write dovrebbe restituire 0 senza scrivere effettivamente nulla nel file.
+  + **write-stdin**: tenta di scrivere su un file descriptor associato all'input standard (fd 0) della console (stdin).
+  + **write-bad-fd**: il test cerca di scrivere su file descriptor non validi. L'obiettivo è capire come il sistema operativo gestisce tentativi di scrittura su file descriptor che non sono stati aperti correttamente.
+  + **write-normal**: verifica  che la syscall write funzioni correttamente quando si cerca di scrivere un file. Il test utilizza la syscall create per creare un file chiamato "test.txt" con i contenuti dell'array "sample" e apre il file utilizzando la syscall open per scrivere all'interno di esso. Alla fine verifica se il numero di byte scritti è uguale a quelli attesi, altrimenti il test fallisce.
+  + **write-bad-ptr**: Questo test verifica il comportamento della syscall write quando si tenta di scrivere su file descriptor (fd) non validi. Il test esegue una serie di chiamate a write con diversi file descriptor, alcuni dei quali sono chiaramente non validi.
+  + **write-boundary**: cerca di scrivere dati che si estendono su due pagine nello spazio degli indirizzi virtuali. Il test utilizza la funzione `copy_string_across_boundary` per ottenere un puntatore a una stringa che attraversa il confine di pagina virtuale. Questo test è importante per testare il comportamento della write quando i dati si estendono su più pagine.
 
-  + open-bad: il test è progettato per garantire che l'applicazione gestisca correttamente una situazione in cui viene passato un puntatore non valido alla chiamata di sistema open
-  + open-boundary: Il test è progettato per verificare il comportamento dell'applicazione nell'apertura di un file manipolato attraverso un confine di memoria.
-  + open-empty: Il test è progettato per verificare il comportamento dell'applicazione nell'apertura di un file vuoto.
-  + open-missing: Il test è progettato per verificare il comportamento dell'applicazione nell'apertura di un file non esistente.
-  + open-normal: questo test fa una chiamata a check_expected con un argomento che è una lista di stringhe. Le righe seguenti, fino a quando si trova nuovamente la stringa EOF, sono trattate come parte di questa stringa. Le istruzioni seguenti sono molto semplici e rappresentano una sequenza in due fasi: "(open-normal) begin" e "(open-normal) end". open-normal: exit(0) è un'annotazione che indica che quando il test raggiunge lo stato "open-normal", dovrebbe terminare con un codice di uscita 0.
-  + open-null: Il test è progettato per verificare il comportamento dell'applicazione nell'apertura di un file nullo.
-  + open-twice: Il test è progettato per verificare il comportamento dell'applicazione nella duplice apertura di uno stesso file.
++ open
 
-+ Test per la close
+  + **open-bad**: il test è progettato per garantire che l'applicazione gestisca correttamente una situazione in cui viene passato un puntatore non valido alla chiamata di sistema open
+  + **open-boundary**: Il test è progettato per verificare il comportamento dell'applicazione nell'apertura di un file manipolato attraverso un confine di memoria.
+  + **open-empty**: Il test è progettato per verificare il comportamento dell'applicazione nell'apertura di un file vuoto.
+  + **open-missing**: Il test è progettato per verificare il comportamento dell'applicazione nell'apertura di un file non esistente.
+  + **open-normal**: questo test fa una chiamata a check_expected con un argomento che è una lista di stringhe. Le righe seguenti, fino a quando si trova nuovamente la stringa EOF, sono trattate come parte di questa stringa. Le istruzioni seguenti sono molto semplici e rappresentano una sequenza in due fasi: "(open-normal) begin" e "(open-normal) end". open-normal: exit(0) è un'annotazione che indica che quando il test raggiunge lo stato "open-normal", dovrebbe terminare con un codice di uscita 0.
+  + **open-null**: Il test è progettato per verificare il comportamento dell'applicazione nell'apertura di un file nullo.
+  + **open-twice**: Il test è progettato per verificare il comportamento dell'applicazione nella duplice apertura di uno stesso file.
+
++ close
  
-  + close-bad: Il primo blocco testa una situazione in cui l'operazione di chiusura ha successo (exit(0)), mentre il secondo blocco simula un caso in cui la chiusura del file descriptor fallisce (exit(-1)). Infine, il test pass; indica che il test è stato superato con successo.
-  + close-normal: questo test fa una chiamata a check_expected con un argomento che è una lista di stringhe. Le righe seguenti, fino a quando si trova nuovamente la stringa EOF, sono trattate come parte di questa stringa. Queste istruzioni rappresentano una sequenza di operazioni che coinvolgono l'apertura e la chiusura di un file chiamato "sample.txt". Nella riga "close-normal: exit(0)" si indica che quando il test raggiunge lo stato "close-normal", dovrebbe terminare con un codice di uscita 0.
-  + close-stdin: testa l'operazione di chiusura del file descriptor stdin (close-stdin)
-  + close-stdout: testa l'operazione di chiusura del file descriptor stdout (close-stdout)
-  + close-twice: testa la gestione della chiusura ripetuta di un file (sample.txt) nel contesto di un file descriptor specifico (close-twice). Nel primo blocco di test, si apre il file sample.txt, lo si chiude una volta e poi si tenta di chiuderlo nuovamente. Il test indica che questa sequenza di operazioni dovrebbe terminare correttamente (exit code 0).
+  + **close-bad**: Il primo blocco testa una situazione in cui l'operazione di chiusura ha successo (exit(0)), mentre il secondo blocco simula un caso in cui la chiusura del file descriptor fallisce (exit(-1)). Infine, il test pass; indica che il test è stato superato con successo.
+  + **close-normal**: questo test fa una chiamata a check_expected con un argomento che è una lista di stringhe. Le righe seguenti, fino a quando si trova nuovamente la stringa EOF, sono trattate come parte di questa stringa. Queste istruzioni rappresentano una sequenza di operazioni che coinvolgono l'apertura e la chiusura di un file chiamato "sample.txt". Nella riga "close-normal: exit(0)" si indica che quando il test raggiunge lo stato "close-normal", dovrebbe terminare con un codice di uscita 0.
+  + **close-stdin**: testa l'operazione di chiusura del file descriptor stdin (close-stdin)
+  + **close-stdout**: testa l'operazione di chiusura del file descriptor stdout (close-stdout)
+  + **close-twice**: testa la gestione della chiusura ripetuta di un file (sample.txt) nel contesto di un file descriptor specifico (close-twice). Nel primo blocco di test, si apre il file sample.txt, lo si chiude una volta e poi si tenta di chiuderlo nuovamente. Il test indica che questa sequenza di operazioni dovrebbe terminare correttamente (exit code 0).
 
-+ Test per la read
++ read
 
-  + read-bad-fd: questo test cerca di leggere da descrittori di file invalidi. La chiamata di sistema read "deve fallire silenziosamente o terminare il processo con il codice di uscita -1". (errore read)
-  + read-bad-ptr: questo test cerca di leggere da un puntatore di memoria invalido. L'aspettativa è che la chiamata di sistema read con un puntatore di memoria invalido dovrebbe causare la terminazione del processo di test con un codice di uscita -1. (errore read)
-  + read-boundary: questo test verifica se è gestita correttamente la lettura di dati che attraversano il confine tra due pagine di memoria. (successo read)
-  + read-normal: questo test verifica che si sia in grado di leggere il file "sample.txt" in modo normale e verificare che il contenuto letto corrisponda al campione fornito (sample). Questo test è progettato per verificare la corretta implementazione della lettura di file. (successo read)
-  + read-stdout: questo test verifica la capacità di poter leggere da uno stream di output (stdout). (successo read)
-  + read-zero: questo test verifica come è gestita una lettura di 0 byte. L'aspettativa è che una lettura di 0 byte dovrebbe restituire 0 senza leggere effettivamente nulla dal file, e il buffer non dovrebbe essere modificato. (successo read)
+  + **read-bad-fd**: questo test cerca di leggere da descrittori di file invalidi. La chiamata di sistema read "deve fallire silenziosamente o terminare il processo con il codice di uscita -1". (errore read)
+  + **read-bad-ptr**: questo test cerca di leggere da un puntatore di memoria invalido. L'aspettativa è che la chiamata di sistema read con un puntatore di memoria invalido dovrebbe causare la terminazione del processo di test con un codice di uscita -1. (errore read)
+  + **read-boundary**: questo test verifica se è gestita correttamente la lettura di dati che attraversano il confine tra due pagine di memoria. (successo read)
+  + **read-normal**: questo test verifica che si sia in grado di leggere il file "sample.txt" in modo normale e verificare che il contenuto letto corrisponda al campione fornito (sample). Questo test è progettato per verificare la corretta implementazione della lettura di file. (successo read)
+  + **read-stdout**: questo test verifica la capacità di poter leggere da uno stream di output (stdout). (successo read)
+  + **read-zero**: questo test verifica come è gestita una lettura di 0 byte. L'aspettativa è che una lettura di 0 byte dovrebbe restituire 0 senza leggere effettivamente nulla dal file, e il buffer non dovrebbe essere modificato. (successo read)
 
-+ Test per la create
++ create
 
-  + create-bad-ptr: questo test verifica che venga gestita correttamente la creazione di processi con "cattivi" puntatori o indirizzi non validi, terminando il processo di test con un codice di uscita specifico in caso di errore. (errore  create)
-  + create-bound: questo test verifica se si gestisce correttamente l'apertura di file quando i loro nomi attraversano i confini di pagina. (successo create)
-  + create-empty: questo test verifica come è gestita la creazione di un file quando viene passata una stringa vuota come nome. (errore create)
-  + create-exists: la creazione di un file con un nome già esistente dovrebbe fallire. Questo test verifica che venga gestita correttamente questa situazione. (errore create)
-  + create-long: la creazione di un file con un nome così lungo dovrebbe fallire, questo test verifica come è gestita questa situazione. (errore create)
-  + create-null: questo test tenta di creare un un file con puntatore nullo. (errore create)
-  + create-normal: questo test serve a verificare la capacità  di creare file ordinari e vuoti. (successo create)
+  + **create-bad-ptr**: questo test verifica che venga gestita correttamente la creazione di processi con "cattivi" puntatori o indirizzi non validi, terminando il processo di test con un codice di uscita specifico in caso di errore. (errore  create)
+  + **create-bound**: questo test verifica se si gestisce correttamente l'apertura di file quando i loro nomi attraversano i confini di pagina. (successo create)
+  + **create-empty**: questo test verifica come è gestita la creazione di un file quando viene passata una stringa vuota come nome. (errore create)
+  + **create-exists**: la creazione di un file con un nome già esistente dovrebbe fallire. Questo test verifica che venga gestita correttamente questa situazione. (errore create)
+  + **create-long**: la creazione di un file con un nome così lungo dovrebbe fallire, questo test verifica come è gestita questa situazione. (errore create)
+  + **create-null**: questo test tenta di creare un un file con puntatore nullo. (errore create)
+  + **create-normal**: questo test serve a verificare la capacità  di creare file ordinari e vuoti. (successo create)
+
+  ## DEBUG ##
+
+Poiché Pintos viene eseguito sul simulatore Qemu è necessario connettere in remoto un'applicazione GDB all'istanza di Pintos in questo simulatore per eseguire il debug.
+
+pintos -q run alarm-single
+pintos --gdb -- -q run alarm-single
+
+_continuare_
+
 
 ## Funzionamento di una chiamata ad una syscall in Pintos ##
 
