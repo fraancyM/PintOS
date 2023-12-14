@@ -190,48 +190,7 @@ _OS161_ implementa in maniera simile a Pintos la gestione delle chiamate, tenend
 
 ## Meccanismi di sincronizzazione ##
 
-### Problemi della programmazione concorrente ###
 
-Una **critical section** è un concetto fondamentale nell'ambito della programmazione concorrente e parallela. Rappresenta una porzione di codice in un programma in cui viene eseguita un'operazione che coinvolge risorse condivise, come variabili o strutture dati, che possono essere accessibili da più thread o processi contemporaneamente. L'obiettivo principale della protezione di una critical section è garantire la correttezza e l'integrità dei dati, evitando situazioni di accesso concorrente che potrebbero portare a risultati indesiderati o inconsistenze.
-
-I problemi principali che possono sorgere in relazione alle critical section sono:
-
-1. **Race Condition**:  si verifica quando due o più thread o processi cercano di accedere contemporaneamente alla stessa risorsa condivisa senza sincronizzazione adeguata. Questo può portare a risultati imprevedibili o errati poiché l'ordine di esecuzione delle istruzioni non è garantito.
-2. **Deadlock**: si verifica quando due o più thread o processi si bloccano reciprocamente, ciascuno aspettando che una risorsa venga rilasciata dall'altro. In altre parole, si crea una situazione in cui nessun thread può procedere, impedendo il completamento dell'esecuzione.
-3. **Starvation**: si verifica quando un thread viene continuamente prevenuto dall'accedere a una risorsa condivisa da altri thread che la monopolizzano. Ciò potrebbe portare a un'inefficienza complessiva del sistema, poiché alcuni thread potrebbero essere costantemente trascurati.
-4. **Livelock**: è una situazione simile al deadlock, ma in questo caso i thread non sono bloccati completamente; invece, sono in uno stato attivo e in continuo scambio di risorse, ma senza alcun progresso reale nell'esecuzione.
-Le critical section sono quindi parti cruciali di un programma in cui l'accesso concorrente alle risorse condivise deve essere attentamente gestito per garantire la correttezza e l'affidabilità del software.
-
-I **meccanismi di sincronizzazione** fungono da ponti tra i thread o i processi, permettendo loro di coordinarsi e collaborare nell'accesso alle risorse condivise. 
-I principali meccanismi di sincronizzazione sono: Mutex, Semaphore, Locks e Condition Variables.
-
-### Mutex e Spinlock ###
-
-Sia _Pintos_ che _OS161_ condividono parti comuni nella gestione di **Mutex** e **Spinlock**. Innanzitutto, definiscono strutture di dati specializzate che contengono informazioni cruciali, come lo **stato del lock** e l'**identificatore** del thread/processo detentore. Inoltre, entrambi offrono funzionalità per l'inizializzazione di questi meccanismi, consentendo di configurare adeguatamente le loro proprietà iniziali.
-L'**acquisizione** dei mutex o spinlock è un altro aspetto comune: entrambi i sistemi forniscono funzioni attraverso le quali un thread o un processo può richiedere l'accesso esclusivo a una risorsa condivisa. Nel caso in cui il lock sia già detenuto, il thread/processo richiedente dovrà attendere fino a quando il lock non sarà rilasciato.
-Il **rilascio** è altrettanto importante: una volta che un thread o processo ha terminato di utilizzare una risorsa condivisa, è cruciale rilasciare il lock corrispondente per permettere ad altri thread/processi in attesa di accedere alla risorsa.
-
-### Semafori ###
-
-I semafori sono meccanismi di sincronizzazione utilizzati per coordinare l'accesso a risorse condivise tra più processi o thread, consentono di regolare l'ordine di esecuzione delle attività evitando problemi come le condizioni di gara e l'accesso simultaneo a risorse critiche. Sono usati per garantire la coerenza e la correttezza dei dati in ambienti concorrenti, controllando l'accesso alle risorse attraverso operazioni di incremento e decremento.
-
-_Pintos_ fornisce funzioni standard per l'inizializzazione dei semafori, l'acquisizione e il rilascio di semafori, nonché altre operazioni comuni. Ad esempio, sema_init(), sema_down(), e sema_up() sono alcune delle funzioni standard utilizzate per lavorare con i semafori. Inoltre, offre anche un sistema di gestione delle priorità, e i semafori sono spesso utilizzati per la sincronizzazione e il rilascio di thread in base alle priorità.
-
-(Da mettere o no ?)Il principale punto di differenza tra Pintos e OS161 nella gestione dei semafori riguarda il livello di astrazione e personalizzazione. _Pintos_ offre una libreria di sincronizzazione standard con funzioni predefinite per semplificare l'uso dei semafori, mentre _OS161_ potrebbe richiedere di implementare i semafori da zero o definire le proprie API.
-
-Nel caso di OS161, l'implementazione dei semafori si differenzia in alcuni aspetti. 
-Il sistema offre due tipi principali di semafori: **semafori di conteggio** e **semafori binari**.
-I primi possono assumere valori interi in un dominio illimitato; i semafori binari presentano solo due valori, 0 o 1, simili alle mutex.
-
-Le operazioni principali sono:
-
-•	**wait(S)**: sospende un processo o un thread fino a quando il valore del semaforo S non diventa maggiore di 0,
-
-•	**signal(S)**: incrementa il valore del semaforo 
-
-In OS161 sono implementati anche i **semafori interrupt-based**, che utilizzano interruzioni per notificare ai thread i cambiamenti di stato. Questo approccio evita il consumo energetico associato alla pratica del "busy waiting", migliorando l'efficienza delle attese.
-
-### Condition variables ###
 
 
 
