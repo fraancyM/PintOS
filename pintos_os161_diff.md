@@ -196,9 +196,12 @@ I **meccanismi di sincronizzazione** sono strumenti che consentono a più proces
 Una risorsa condivisa è una risorsa che può essere utilizzata da più processi o thread contemporaneamente e può essere: una variabile condivisa, un dispositivo hardware o un buffer di memoria.
 
 Se l'accesso concorrente alle risorse condivise non viene gestito opportunamente si possono avere problemi, come:
-•	**Race condition**: due o più processi o thread cercano di accedere contemporaneamente alla stessa risorsa condivisa senza sincronizzazione adeguata. Questo può portare a risultati imprevedibili o errati poiché l'ordine di esecuzione delle istruzioni non è garantito.
+
+•	**Race condition**: due o più processi o thread cercano di accedere contemporaneamente alla stessa risorsa condivisa senza sincronizzazione adeguata. Questo può portare a risultati imprevedibili o errati poiché l'ordine di esecuzione delle istruzioni non è garantito
+
 •	**Deadlock**: due o più processi o thread si bloccano reciprocamente, ciascuno aspettando che una risorsa venga rilasciata dall'altro
-•	**Starvation**: un processo o thread viene costantemente escluso dall'accesso a una risorsa condivisa da altri processi o thread che la utilizzano in modo esclusivo.
+
+•	**Starvation**: un processo o thread viene costantemente escluso dall'accesso a una risorsa condivisa da altri processi o thread che la utilizzano in modo esclusivo
 
 I meccanismi di sincronizzazione consentono di evitare questi problemi garantendo che l'accesso alle risorse condivise sia eseguito in modo sicuro e affidabile.
 
