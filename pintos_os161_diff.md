@@ -195,7 +195,7 @@ _OS161_ implementa in maniera simile a Pintos la gestione delle chiamate, tenend
 I **meccanismi di sincronizzazione** sono strumenti che consentono a più processi o thread di condividere le risorse in modo sicuro e affidabile.
 Una risorsa condivisa è una risorsa che può essere utilizzata da più processi o thread contemporaneamente e può essere: una variabile condivisa, un dispositivo hardware o un buffer di memoria.
 
-Se l'accesso concorrente alle risorse condivise non viene gestito opportunamente si possono avere problemi, come:
+Se l'accesso concorrente alle risorse condivise non viene gestito opportunamente si può incorrere nei seguenti problemi:
 
 •	**Race condition**: due o più processi o thread cercano di accedere contemporaneamente alla stessa risorsa condivisa senza sincronizzazione adeguata. Questo può portare a risultati imprevedibili o errati poiché l'ordine di esecuzione delle istruzioni non è garantito
 
@@ -209,13 +209,13 @@ I meccanismi di sincronizzazione consentono di evitare questi problemi garantend
 
 La disabilitazione degli interrupt è una pratica comune nei sistemi operativi per garantire la coerenza e la correttezza delle operazioni eseguite dai thread del kernel, specialmente in contesti critici come la gestione di interruzioni esterne o la sincronizzazione tra i thread stessi.
 
-**_Pintos_** è progettato come un **kernel preemptible**, il che significa che i thread del kernel possono essere interrotti in qualsiasi momento. (_thread/interrupt.h_)
+**_Pintos_** è progettato come un **kernel preemptible**, il che significa che i thread del kernel possono essere interrotti in qualsiasi momento. 
 
-La disabilitazione degli interrupt viene utilizzata per impedire la prelazione automatica dei thread da parte del timer o di altri interrupt, garantendo che il thread in esecuzione abbia la precedenza. Tuttavia, in Pintos si cerca di limitare l'uso della disabilitazione degli interrupt per evitare perdite di informazioni importanti, come i segni di spunta del timer o gli eventi di input. È fortemente suggerita la sincronizzazione esplicita utilizzando le primitive di sincronizzazione offerte dal sistema.
+La disabilitazione degli interrupt viene utilizzata per impedire la prelazione automatica dei thread da parte del timer o di altri interrupt, garantendo che il thread in esecuzione abbia la precedenza. Tuttavia, in Pintos si cerca di limitare l'uso della disabilitazione degli interrupt per evitare perdite di informazioni importanti, come i segni di spunta del timer o gli eventi di input. È fortemente suggerita la sincronizzazione esplicita utilizzando le primitive di sincronizzazione offerte dal sistema. (_thread/interrupt.h_)
 
 In **OS161**, la disabilitazione degli interrupt è gestita attraverso le funzioni `spl0()`, `splhigh()`, e `splx(s)` ( _kern/include/spl.h_ ). Queste funzioni consentono di impostare il livello di priorità degli interrupt, bloccando quelli meno urgenti durante l'esecuzione di sezioni critiche. 
 
-Entrambi i sistemi operativi utilizzano la disabilitazione degli, tuttavia **Pintos** offre una maggiore flessibilità, incoraggiando l'uso di primitive di sincronizzazione più specifiche per evitare l'eccessiva disabilitazione degli interrupt. D'altra parte, **OS161** semplifica la gestione degli interrupt fornendo solo tre livelli di priorità.
+Entrambi i sistemi operativi utilizzano la disabilitazione degli interrupt, tuttavia **Pintos** offre una maggiore flessibilità, incoraggiando l'uso di primitive di sincronizzazione più specifiche per evitare l'eccessiva disabilitazione degli interrupt. D'altra parte, **OS161** semplifica la gestione degli interrupt fornendo solo tre livelli di priorità.
 In entrambi i sistemi operativi Pintos e OS161, la disabilitazione degli interrupt è una pratica delicata che richiede attenzione. La scelta specifica di come gestire gli interrupt dipende dalle esigenze del sistema e dalla progettazione del kernel. 
 In generale, si tende a preferire l'utilizzo di pratiche di sincronizzazione esplicite e di limitare al minimo indispensabile la disabilitazione degli interrupt, al fine di garantire la stabilità e le prestazioni ottimali del sistema operativo.
 
