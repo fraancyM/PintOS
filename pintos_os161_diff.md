@@ -236,7 +236,7 @@ Il codice fornisce operazioni come `sema_init`, `sema_down`, `sema_try_down`, e 
 
 In **OS161**, i semafori sono implementati come una struttura dati contenente un nome, un canale di attesa (`wchan`), un lock spin e un contatore. Le operazioni `P` e `V` sono equivalenti alle operazioni "down" e "up". La funzione `P` decrementa il contatore e blocca il thread se è già zero, mentre la `V` incrementa il contatore e sveglia un thread in attesa.
 
-![Semaforo in OS161](./images/sem_OS161.JPG)
+![Semaforo in OS161](./images/sem_os161.JPG)
 
 Entrambe le implementazioni seguono il modello classico di semafori di Dijkstra, con operazioni atomiche di "down" e "up" per garantire la sincronizzazione.
 Tuttavia, ci sono alcune differenze nelle implementazioni specifiche.
