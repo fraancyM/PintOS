@@ -255,6 +255,42 @@ OS161:
 
 L'approccio di Pintos è più semplice da implementare, ma può essere meno efficiente se ci sono molti thread in attesa su un semaforo. L'approccio di OS161 è più efficiente, ma può essere più difficile da implementare.
 
+### Lock (MUTEX) ###
+
+Un **lock** è analogo a un semaforo con un valore iniziale di 1, equivalente al verde di un semaforo (semaforo binario). L'azione "up" di un blocco è chiamata "rilascio", mentre l'azione "down" è detta "acquisizione".
+
+A differenza di un semaforo, un lock ha una restrizione: solo il thread che acquisisce il lock, il "proprietario", può rilasciarlo. 
+_Se questa restrizione fosse problematica, l'utilizzo di un semaforo potrebbe essere preferibile._
+
+In **Pintos** si ha un unico tipo di lock con le seguenti operazioni di base:
+- `lock_init`: Inizializza un nuovo lock.
+- `lock_acquire`: Acquisisce il lock, aspettando, se necessario, il suo rilascio.
+- `lock_try_acquire`: Prova ad acquisire il lock senza attendere.
+- `lock_release`: Rilascia il lock detenuto dal thread corrente.
+- `lock_held_by_current_thread`: Verifica se il thread in esecuzione possiede il lock.
+
+![Lock in Pintos](./images/lock_pintos.JPG)
+
+
+In **OS161**, il lock contiene un campo per il nome del lock e un _hook_ per il rilevamento dei deadlock (`lk_hangman`). 
+Le operazioni di base sono:
+- `lock_create`: Crea un nuovo lock.
+- `lock_destroy`: Distrugge un lock.
+- `lock_acquire`: Acquisisce il lock, garantendo la mutua esclusione.
+- `lock_release`: Rilascia il lock detenuto dal thread corrente.
+- `lock_do_i_hold`: Verifica se il thread corrente possiede il lock.
+
+![Lock in OS161](./images/lock_os161.JPG)
+
+
+OS161 introduce anche gli **spinlock**, un meccanismo più primitivo in cui il lock è posseduto da una CPU anziché da un thread. 
+Gli spinlock sono lock che non inducono il thread in attesa passiva, bensì il thread in attesa continua a eseguire un ciclo finché il lock non è disponibile. 
+Gli spinlock sono preferiti in situazioni con attese brevi, ma devono essere usati con attenzione in attese prolungate, poiché comportano un consumo continuo delle risorse della CPU.
+
+![Spin lock in OS161](./images/spinlock_os161.JPG)
+![Spin lock functions in OS161](./images/spinlock_func_os161.JPG)
+
+
 
 
 
