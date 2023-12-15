@@ -209,11 +209,11 @@ I meccanismi di sincronizzazione consentono di evitare questi problemi garantend
 
 La disabilitazione degli interrupt è una pratica comune nei sistemi operativi per garantire la coerenza e la correttezza delle operazioni eseguite dai thread del kernel, specialmente in contesti critici come la gestione di interruzioni esterne o la sincronizzazione tra i thread stessi.
 
-**_Pintos_** è progettato come un **kernel preemptible**, il che significa che i thread del kernel possono essere interrotti in qualsiasi momento.
+**_Pintos_** è progettato come un **kernel preemptible**, il che significa che i thread del kernel possono essere interrotti in qualsiasi momento. (_thread/interrupt.h_)
 
 La disabilitazione degli interrupt viene utilizzata per impedire la prelazione automatica dei thread da parte del timer o di altri interrupt, garantendo che il thread in esecuzione abbia la precedenza. Tuttavia, in Pintos si cerca di limitare l'uso della disabilitazione degli interrupt per evitare perdite di informazioni importanti, come i segni di spunta del timer o gli eventi di input. È fortemente suggerita la sincronizzazione esplicita utilizzando le primitive di sincronizzazione offerte dal sistema.
 
-In **OS161**, la disabilitazione degli interrupt è gestita attraverso le funzioni `spl0()`, `splhigh()`, e `splx(s)` ( _kern/include_ ). Queste funzioni consentono di impostare il livello di priorità degli interrupt, bloccando quelli meno urgenti durante l'esecuzione di sezioni critiche. 
+In **OS161**, la disabilitazione degli interrupt è gestita attraverso le funzioni `spl0()`, `splhigh()`, e `splx(s)` ( _kern/include/spl.h_ ). Queste funzioni consentono di impostare il livello di priorità degli interrupt, bloccando quelli meno urgenti durante l'esecuzione di sezioni critiche. 
 
 Entrambi i sistemi operativi utilizzano la disabilitazione degli, tuttavia **Pintos** offre una maggiore flessibilità, incoraggiando l'uso di primitive di sincronizzazione più specifiche per evitare l'eccessiva disabilitazione degli interrupt. D'altra parte, **OS161** semplifica la gestione degli interrupt fornendo solo tre livelli di priorità.
 In entrambi i sistemi operativi Pintos e OS161, la disabilitazione degli interrupt è una pratica delicata che richiede attenzione. La scelta specifica di come gestire gli interrupt dipende dalle esigenze del sistema e dalla progettazione del kernel. 
@@ -290,7 +290,22 @@ Gli spinlock sono preferiti in situazioni con attese brevi, ma devono essere usa
 ![Spin lock in OS161](./images/spinlock_os161.JPG)
 ![Spin lock functions in OS161](./images/spinlock_func_os161.JPG)
 
+### Condition variables ### 
 
+Le **condition variables** sono un meccanismo di sincronizzazione utilizzato nei sistemi operativi per la gestione di thread concorrenti. Esse forniscono un modo per far sì che un thread possa attendere fino a quando una certa condizione diventa vera, consentendo così una cooperazione efficiente tra i thread.
+
+In **Pintos** le condition variables sono definite come una `struct codition`. 
+
+Le funzioni principali includono `cond_init` per inizializzare una variabile di condizione, `cond_wait` per rilasciare il blocco del monitor e attendere una condizione, `cond_signal` per risvegliare un thread in attesa, e `cond_broadcast` per risvegliare tutti i thread in attesa.
+
+In **OS161** le condition variables sono implementate attraverso la struttura `cv`. 
+
+Le operazioni principali sono `cv_wait`, che rilascia il lock e va in sleep, `cv_signal`, che risveglia uno specifico thread in attesa, e `cv_broadcast`, che risveglia tutti i thread in attesa. 
+Le operazioni devono essere eseguite atomicamente, e il thread corrente deve possedere il lock associato alla condition variable durante l'esecuzione di tali operazioni.
+
+In entrambi i sistemi operativi, l'obiettivo delle condition variables è consentire ai thread di aspettare che determinate condizioni diventino vere, migliorando l'efficienza della sincronizzazione. 
+
+_In **Pintos** si fa anche riferimento al concetto di "monitor" come una forma avanzata di sincronizzazione rispetto a semafori o lock. Un monitor è costituito da dati da sincronizzare, un monitor lock e variabili di condizione._
 
 
 
