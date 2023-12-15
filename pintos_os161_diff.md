@@ -208,11 +208,11 @@ I meccanismi di sincronizzazione consentono di evitare questi problemi garantend
 ### Disabilitazione degli interrupt ###
 La disabilitazione degli interrupt è una pratica comune nei sistemi operativi per garantire la coerenza e la correttezza delle operazioni eseguite dai thread del kernel, specialmente in contesti critici come la gestione di interruzioni esterne o la sincronizzazione tra i thread stessi.
 
-** _Pintos_ ** è progettato come un **kernel preemptible**, il che significa che i thread del kernel possono essere interrotti in qualsiasi momento.
+**_Pintos_** è progettato come un **kernel preemptible**, il che significa che i thread del kernel possono essere interrotti in qualsiasi momento.
 
 La disabilitazione degli interrupt viene utilizzata per impedire la prelazione automatica dei thread da parte del timer o di altri interrupt, garantendo che il thread in esecuzione abbia la precedenza. Tuttavia, in Pintos si cerca di limitare l'uso della disabilitazione degli interrupt per evitare perdite di informazioni importanti, come i segni di spunta del timer o gli eventi di input. È fortemente suggerita la sincronizzazione esplicita utilizzando le primitive di sincronizzazione offerte dal sistema.
 
-In OS161, la disabilitazione degli interrupt è gestita attraverso le funzioni `spl0()`, `splhigh()`, e `splx(s)` ( _kern/include_ ). Queste funzioni consentono di impostare il livello di priorità degli interrupt, bloccando quelli meno urgenti durante l'esecuzione di sezioni critiche. 
+In **OS161**, la disabilitazione degli interrupt è gestita attraverso le funzioni `spl0()`, `splhigh()`, e `splx(s)` ( _kern/include_ ). Queste funzioni consentono di impostare il livello di priorità degli interrupt, bloccando quelli meno urgenti durante l'esecuzione di sezioni critiche. 
 
 Entrambi i sistemi operativi utilizzano la disabilitazione degli, tuttavia **Pintos** offre una maggiore flessibilità, incoraggiando l'uso di primitive di sincronizzazione più specifiche per evitare l'eccessiva disabilitazione degli interrupt. D'altra parte, **OS161** semplifica la gestione degli interrupt fornendo solo tre livelli di priorità.
 In entrambi i sistemi operativi Pintos e OS161, la disabilitazione degli interrupt è una pratica delicata che richiede attenzione. La scelta specifica di come gestire gli interrupt dipende dalle esigenze del sistema e dalla progettazione del kernel. 
