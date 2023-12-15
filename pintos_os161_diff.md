@@ -206,6 +206,7 @@ Se l'accesso concorrente alle risorse condivise non viene gestito opportunamente
 I meccanismi di sincronizzazione consentono di evitare questi problemi garantendo che l'accesso alle risorse condivise sia eseguito in modo sicuro e affidabile.
 
 ### Disabilitazione degli interrupt ###
+
 La disabilitazione degli interrupt è una pratica comune nei sistemi operativi per garantire la coerenza e la correttezza delle operazioni eseguite dai thread del kernel, specialmente in contesti critici come la gestione di interruzioni esterne o la sincronizzazione tra i thread stessi.
 
 **_Pintos_** è progettato come un **kernel preemptible**, il che significa che i thread del kernel possono essere interrotti in qualsiasi momento.
@@ -217,6 +218,42 @@ In **OS161**, la disabilitazione degli interrupt è gestita attraverso le funzio
 Entrambi i sistemi operativi utilizzano la disabilitazione degli, tuttavia **Pintos** offre una maggiore flessibilità, incoraggiando l'uso di primitive di sincronizzazione più specifiche per evitare l'eccessiva disabilitazione degli interrupt. D'altra parte, **OS161** semplifica la gestione degli interrupt fornendo solo tre livelli di priorità.
 In entrambi i sistemi operativi Pintos e OS161, la disabilitazione degli interrupt è una pratica delicata che richiede attenzione. La scelta specifica di come gestire gli interrupt dipende dalle esigenze del sistema e dalla progettazione del kernel. 
 In generale, si tende a preferire l'utilizzo di pratiche di sincronizzazione esplicite e di limitare al minimo indispensabile la disabilitazione degli interrupt, al fine di garantire la stabilità e le prestazioni ottimali del sistema operativo.
+
+### Semafori ###
+
+I **semafori** sono strumenti di sincronizzazione utilizzati per coordinare l'accesso concorrente alle risorse condivise tra i thread o i processi.
+
+Le operazioni fondamentali sui semafori nei sistemi operativi sono `down` (o `P`) e `up` (o `V`). 
+L'operazione `down` acquisisce un lock associato al semaforo, verifica il valore del semaforo, e se è maggiore di zero, lo decrementa di uno. Se il valore è zero, il thread viene bloccato o messo in attesa. Successivamente, viene rilasciato il lock.
+L'operazione `up` acquisisce il lock associato al semaforo, incrementa il valore del semaforo di uno, sveglia un thread in attesa (se presente), e infine rilascia il lock.
+Queste operazioni sono essenziali per garantire la sincronizzazione nell'accesso concorrente alle risorse condivise nei sistemi operativi.
+Le funzioni equivalenti sono `sema_down` e `sema_up` in Pintos, e `P` e `V` in OS161.
+
+In **Pintos**, i semafori sono rappresentati da una struttura dati che include un valore non negativo e un'implementazione di operazioni atomiche di "down" e "up". La libreria gestisce internamente l'elenco dei thread in attesa utilizzando una lista collegata. L'uso di "down" e "up" consente di creare una sincronizzazione tra i thread.
+Il codice fornisce operazioni come `sema_init`, `sema_down`, `sema_try_down`, e `sema_up`. La `sema_down` blocca il thread se il valore è zero, mentre `sema_try_down` prova ad abbassare il semaforo senza attendere e restituisce true se ha successo. La `sema_up` incrementa il valore del semaforo e sveglia un thread in attesa, se presente.
+
+![Semaforo in PintOS](./images/sem_pintos.JPG)
+
+In **OS161**, i semafori sono implementati come una struttura dati contenente un nome, un canale di attesa (`wchan`), un lock spin e un contatore. Le operazioni `P` e `V` sono equivalenti alle operazioni "down" e "up". La funzione `P` decrementa il contatore e blocca il thread se è già zero, mentre la `V` incrementa il contatore e sveglia un thread in attesa.
+
+![Semaforo in OS161](./images/sem_OS161.JPG)
+
+Entrambe le implementazioni seguono il modello classico di semafori di Dijkstra, con operazioni atomiche di "down" e "up" per garantire la sincronizzazione.
+Tuttavia, ci sono alcune differenze nelle implementazioni specifiche.
+
+Pintos:
+
+- Utilizza una struttura di semaforo con un elenco collegato per i thread in attesa.
+
+- Fornisce una versione "try" di "down" per evitare l'attesa in un ciclo stretto.
+
+OS161:
+
+- Utilizza una struttura di semaforo con un canale di attesa (`wchan`) e un lock spin.
+
+- Implementa le operazioni "down" e "up" con i nomi `P` e `V`.
+
+L'approccio di Pintos è più semplice da implementare, ma può essere meno efficiente se ci sono molti thread in attesa su un semaforo. L'approccio di OS161 è più efficiente, ma può essere più difficile da implementare.
 
 
 
