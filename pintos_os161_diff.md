@@ -739,7 +739,7 @@ Esempio Exit test superato
 
 + open
 
-  + **open-bad**: il test è progettato per garantire che l'applicazione gestisca correttamente una situazione in cui viene passato un puntatore non valido alla chiamata di sistema open
+  + **open-bad-ptr**: il test è progettato per garantire che l'applicazione gestisca correttamente una situazione in cui viene passato un puntatore non valido alla chiamata di sistema open
   + **open-boundary**: Il test è progettato per verificare il comportamento dell'applicazione nell'apertura di un file manipolato attraverso un confine di memoria.
   + **open-empty**: Il test è progettato per verificare il comportamento dell'applicazione nell'apertura di un file vuoto.
   + **open-missing**: Il test è progettato per verificare il comportamento dell'applicazione nell'apertura di un file non esistente.
@@ -749,7 +749,7 @@ Esempio Exit test superato
 
 + close
  
-  + **close-bad**: Il primo blocco testa una situazione in cui l'operazione di chiusura ha successo (exit(0)), mentre il secondo blocco simula un caso in cui la chiusura del file descriptor fallisce (exit(-1)). Infine, il test pass; indica che il test è stato superato con successo.
+  + **close-bad-fd**: Il primo blocco testa una situazione in cui l'operazione di chiusura ha successo (exit(0)), mentre il secondo blocco simula un caso in cui la chiusura del file descriptor fallisce (exit(-1)). Infine, il test pass; indica che il test è stato superato con successo.
   + **close-normal**: questo test fa una chiamata a check_expected con un argomento che è una lista di stringhe. Le righe seguenti, fino a quando si trova nuovamente la stringa EOF, sono trattate come parte di questa stringa. Queste istruzioni rappresentano una sequenza di operazioni che coinvolgono l'apertura e la chiusura di un file chiamato "sample.txt". Nella riga "close-normal: exit(0)" si indica che quando il test raggiunge lo stato "close-normal", dovrebbe terminare con un codice di uscita 0.
   + **close-stdin**: testa l'operazione di chiusura del file descriptor stdin (close-stdin)
   + **close-stdout**: testa l'operazione di chiusura del file descriptor stdout (close-stdout)
