@@ -172,9 +172,14 @@ Entrambi gli ambienti sono validi per l'apprendimento dei principi di scheduling
 
 **Paging e virtual memory**
 
-Pintos implementa una gestione della memoria virtuale di base. Questo include la paginazione e la gestione dello spazio degli indirizzi dei processi, consentendo ai processi di operare in spazi di indirizzamento separati e protetti. Utilizza, inoltre, un file speciale chiamato "pagina di swap" per memorizzare temporaneamente le pagine fisiche quando la memoria fisica è esaurita. Questo permette di gestire i casi in cui la memoria fisica è piena, spostando le pagine meno utilizzate in memoria su disco e recuperandole quando necessario.
+Pintos implementa una gestione della memoria virtuale di base. Questo include la paginazione e la gestione dello spazio degli indirizzi dei processi, consentendo ai processi di operare in spazi di indirizzamento separati e protetti. 
 
-Più in particolare, la memoria fisica di _Pintos_ è suddivisa in pagine di dimensioni fisse, e ogni pagina ha un numero di pagina univoco. Ogni processo ha un proprio spazio di indirizzamento virtuale, suddiviso in pagine. La mappatura tra gli indirizzi virtuali dei processi e gli indirizzi fisici delle pagine è gestita da una tabella delle pagine (Page Table) specifica per ciascun processo. Esso fa uso di strutture dati quali vettori, liste, bitmap ecc... ma principalmente _Pintos_ include una struttura di tipo BitMap per tenere traccia dell'utilizzo in un insieme di risorse (identiche), e inoltre utilizza anche una struttura di tipo Hash Table che supporta, in maniera efficiente, le inserimenti ed eliminazioni su un'ampia gamma di tabelle. 
+Più in particolare, la memoria fisica di _Pintos_ è suddivisa in pagine di dimensioni fisse, e ogni pagina ha un numero di pagina univoco. Ogni processo ha un proprio spazio di indirizzamento virtuale, suddiviso in pagine. La mappatura tra gli indirizzi virtuali dei processi e gli indirizzi fisici delle pagine è gestita da una tabella delle pagine (Page Table) specifica per ciascun processo. Esso fa uso di strutture dati quali vettori, liste, bitmap ecc... ma principalmente _Pintos_ include una struttura di tipo BitMap per tenere traccia dell'utilizzo in un insieme di risorse (identiche), e inoltre utilizza anche una struttura di tipo Hash Table che supporta, in maniera efficiente, gli inserimenti ed eliminazioni su un'ampia gamma di tabelle. 
+
+_Pintos_ possiede anche una "supplemental page table" che integra la page table con dati addizionali per ogni pagina, e il suo utilizzatore più importante è il "page fault handler". Viene usata principalmente per due motivi:
+
+1) Durante un page fault, il kernel cerca la pagina virtuale che ha causato l'errore nella tabella delle "supplemental page table" per scoprire quali dati dovrebbero essere presenti.
+2) Il kernel consulta la "supplemental page table" quando un processo termina, per decidere quali risorse liberare.
 
 Per questi motivi _Pintos_ possiede un sistema di paginazione e memoria virtuale simile a quello presente su OS161, mentre la sostanziale differenza risiede nel livello di complessità con cui sono state implementate queste funzioni.
 La paginazione presente in OS161 è più avanzata, offrendo quindi funzionalità aggiuntive rispetto a Pintos.
@@ -184,7 +189,7 @@ La paginazione presente in OS161 è più avanzata, offrendo quindi funzionalità
 
 In _Pintos_, le chiamate di sistema (system calls) sono gestite tramite una serie di passaggi che coinvolgono l'utente, il kernel e il sistema operativo.
 
-Quando un processo utente desidera effettuare una chiamata di sistema utilizza una funzione o un'istruzione speciale, che genera un'interruzione o una trap e questa operazione passa il controllo al kernel. Una volta generata l'interruzione, il controllo viene passato al dispatcher di sistema del kernel. Il dispatcher è responsabile di identificare il tipo di chiamata di sistema richiesta e di instradare l'esecuzione al gestore appropriato. Il kernel di _Pintos_ effettua la validazione e l'autenticazione delle chiamate di sistema. Verifica che il processo utente abbia i diritti necessari per eseguire la chiamata di sistema richiesta e che i parametri passati siano validi, e una volta che il kernel ha verificato e autenticato la chiamata di sistema, esegue il servizio richiesto dal processo utente. Dopo aver eseguito la chiamata di sistema e soddisfatto la richiesta del processo utente, il kernel restituisce il controllo al processo utente.
+Quando un processo utente desidera effettuare una chiamata di sistema utilizza una funzione o un'istruzione speciale, che genera un'interruzione o una trap e questa operazione passa il controllo al kernel. Una volta generata l'interruzione, l'exception handler è responsabile di identificare il tipo di chiamata di sistema richiesta e di instradare l'esecuzione al gestore appropriato. Il kernel di _Pintos_ effettua la validazione e l'autenticazione delle chiamate di sistema. Verifica che il processo utente abbia i diritti necessari per eseguire la chiamata di sistema richiesta e che i parametri passati siano validi, e una volta che il kernel ha verificato e autenticato la chiamata di sistema, esegue il servizio richiesto dal processo utente. Dopo aver eseguito la chiamata di sistema e soddisfatto la richiesta del processo utente, il kernel restituisce il controllo al processo utente.
 
 _OS161_ implementa in maniera simile a Pintos la gestione delle chiamate, tenendo però conto delle differenze di codice e strutture dati utilizzate da entrambi i sistemi operativi.
 
@@ -781,27 +786,6 @@ _continuare_
 
 ## Funzionamento di una chiamata ad una syscall in Pintos ##
 
-1) Interrupts e Trap Gates: Quando un programma utente esegue una system call, si verifica un'interruzione (interrupt) della CPU. In Pintos, ciò può essere fatto utilizzando una trap gate, che è un tipo di descrittore di interruzione che indica alla CPU di passare il controllo a una particolare routine quando si verifica un'interruzione specifica.
-
-2) Interruzione del Timer: In Pintos, spesso si utilizza un timer periodico per generare interruzioni regolari. Quando il timer genera un'interruzione, il controllo passa al gestore delle interruzioni del timer.
-
-3) Salvataggio dello stato: Il gestore delle interruzioni salva lo stato corrente della CPU, inclusi registri importanti, nell'area di memoria chiamata stack kernel. Questo è necessario per garantire che il sistema possa riprendere l'esecuzione dal punto in cui è stata interrotta.
-
-4) Chiamata di sistema: Una volta che lo stato è stato salvato, il gestore delle interruzioni determina il motivo dell'interruzione. Nel caso di una system call, il gestore delle interruzioni passa il controllo a una funzione specifica per la system call corrente.
-
-5) Dispatcher delle System Call: Il dispatcher delle system call è responsabile di identificare quale system call è stata richiesta e di passare il controllo alla routine corrispondente.
-
-6) Esecuzione della System Call: La routine della system call esegue le azioni richieste, che possono includere l'accesso ai parametri forniti dall'utente, l'esecuzione di operazioni di sistema, e così via.
-
-7) Ripristino dello stato e Ritorno all'Utente: Dopo l'esecuzione della system call, lo stato della CPU viene ripristinato, e il controllo viene restituito al programma utente.
-
-----
-metterei così
-
-integrare con la parte di sopra eventualmente
-
-----
-
 In Pintos, il funzionamento di una chiamata di sistema (syscall) è gestito attraverso una serie di passaggi:
 
 1. **Interrupt:**
@@ -811,7 +795,7 @@ In Pintos, il funzionamento di una chiamata di sistema (syscall) è gestito attr
    - Una volta avviato l'interrupt, l'exception handler di Pintos, controlla il tipo di interrupt per determinare se si tratta di una chiamata di sistema.
 
 3. **Switch al Kernel Mode:**
-   - Se la chiamata di sistema viene riconosciuta, il sistema operativo passa dalla modalità user alla modalità kernel per eseguire il codice del kernel.
+   - Se la chiamata di sistema viene riconosciuta, il sistema operativo passa dalla modalità user alla modalità kernel per eseguire il codice del kernel. Inoltre, viene salvato lo stato corrente della CPU, inclusi registri importanti, nell'area di memoria chiamata stack kernel. Questo è necessario per garantire che il sistema possa riprendere l'esecuzione dal punto in cui è stata interrotta.
 
 4. **Identificazione della Syscall:**
    - Il sistema operativo identifica il tipo specifico di chiamata di sistema richiesta, attraverso un numero di servizio o un codice specifico passato dai registri della CPU.
@@ -820,7 +804,7 @@ In Pintos, il funzionamento di una chiamata di sistema (syscall) è gestito attr
    - Il kernel esegue il codice specifico per la chiamata di sistema richiesta.
 
 6. **Restituzione del controllo all'user Mode:**
-   - Dopo aver completato l'operazione richiesta, il kernel restituisce il controllo al programma utente, ripristinando la modalità utente.
+   - Dopo aver completato l'operazione richiesta, il kernel restituisce il controllo al programma utente, ripristinando la modalità utente. Viene anche ripristinato lo stato della CPU e i registri.
 
 _Esempio di syscall che si muove dallo spazio utente allo spazio kernel in Pintos_
 ![Esempio](./images/example_syscall_exit.png)
