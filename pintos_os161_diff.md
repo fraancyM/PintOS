@@ -1,13 +1,3 @@
-# Link Utili per la ricerca
-- Pintos doc: https://cs162.org/static/proj/pintos-docs/
-- Pintos doc by Stanford (PDF): https://web.stanford.edu/class/cs140/projects/pintos/pintos.pdf
-- 
-
-Argomenti contro-parte OS:
-- System calls: https://ops-class.org/man/syscall/
-- Processes scheduling: http://jhshi.me/2012/03/18/os161-process-scheduling/index.html
-- Understanding system calls: https://tddg.github.io/cs571-spring20/proj2_understand_syscalls.html
-
 # Progetto 1.1: Analisi comparativa tra OS161 e altri sistemi operativi open-source all'avanguardia per sistemi embedded e computer general purpose
 
 Per questo progetto abbiamo scelto di analizzare _pintOS_, un sistema operativo didattico open source per l'architettura del set di istruzioni x86, attualmente in uso in diversi istituti. Fu creato all'università di Stanford da Ben Pfaff nel 2004, originariamente pensato per sostituire il sistema operativo NachOS, un sistema simile creato dalla University of California a Berkeley. A differenza di NachOS, PintOS può essere eseguito sull'hardware x86 reale, sebbene venga spesso eseguito su un'emulatore di sistema, come Bochs o Qemu. Noi abbiamo utilizzato il simulatore QEMU.
@@ -532,7 +522,7 @@ void kill(){
 
 ### SYS_WRITE ###
 
-
+La system call WRITE viene utilizzata per gestire la scrittura di dati in un file aperto fd, distinguendo tra la console (`fd = STDOUT_FILENO`) e altri file. In particolare, si tenta di scrivere il maggior numero possibile di byte fino alla fine del file e restituire il numero effettivo di byte scritti, oppure -1 se non è stato possibile scrivere alcun byte.
 
 ```c
 int write (int fd, const void *buff, unsigned size){
@@ -774,9 +764,10 @@ Esempio Exit test superato
   + **create-null**: questo test tenta di creare un un file con puntatore nullo. (errore create)
   + **create-normal**: questo test serve a verificare la capacità  di creare file ordinari e vuoti. (successo create)
 
+
   ## DEBUG ##
 
-Poiché Pintos viene eseguito sul simulatore Qemu è necessario connettere in remoto un'applicazione GDB all'istanza di Pintos in questo simulatore per eseguire il debug.
+Pintos viene eseguito sul simulatore Qemu, per cui è necessario connettere in remoto un'applicazione GDB all'istanza di Pintos in questo simulatore per eseguire il debug.
 
 pintos -q run alarm-single
 pintos --gdb -- -q run alarm-single
