@@ -11,6 +11,7 @@
 #include "threads/switch.h"
 #include "threads/synch.h"
 #include "threads/vaddr.h"
+#include "userprog/process.h"
 #ifdef USERPROG
 #include "userprog/process.h"
 #endif
@@ -382,6 +383,13 @@ thread_get_nice (void)
 /* Returns 100 times the system load average. */
 int
 thread_get_load_avg (void)
+{
+  /* Not yet implemented. */
+  return 0;
+}
+
+int
+thread_get_recent_cpu (void) 
 {
   /* Not yet implemented. */
   return 0;

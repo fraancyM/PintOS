@@ -10,6 +10,8 @@ void
 test_main (void) 
 {
   char buf = 123;
+
+  // Tentativi di scrivere su file descriptor non validi
   write (0x01012342, &buf, 1);
   write (7, &buf, 1);
   write (2546, &buf, 1);

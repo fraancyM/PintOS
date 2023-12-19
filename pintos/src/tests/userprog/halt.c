@@ -7,5 +7,7 @@ void
 test_main (void) 
 {
   halt ();
+  
+  //Questo codice non dovrebbe essere mai eseguito se funziona correttamente la sys_halt
   fail ("should have halted");
 }

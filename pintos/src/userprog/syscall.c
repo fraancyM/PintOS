@@ -6,10 +6,8 @@
 
 //Aggiunte
 #include "process.h"
-//#include "pagedir.h"
 #include "threads/vaddr.h"
 #include "devices/shutdown.h"
-#include "filesys/filesys.h"
 
 static void syscall_handler (struct intr_frame *);
 
@@ -17,9 +15,7 @@ static void syscall_handler (struct intr_frame *);
 void halt(void);
 int open(const char *file);
 void exit(int status);
-void kill();
 int write(int fd, const void *buffer, unsigned size);
-
 void close(int fd);
 bool create(const char *file, unsigned initial_size);
 int read (int, void *, unsigned);
@@ -43,7 +39,7 @@ syscall_handler (struct intr_frame *f)
 {
   int *ptr = f->esp;
   if(check(ptr) == false)
-    kill();
+    exit(-1);
 
   int syscall_number = *ptr;
   ASSERT(sizeof(syscall_number) == 4 ); // x86
@@ -56,56 +52,52 @@ syscall_handler (struct intr_frame *f)
 
     case SYS_EXIT:
         if(check(ptr+1)==false)
-            kill();
+            exit(-1);
 
         exit(*(ptr+1)); //exit ha 1 argomento --> ptr+1
-        break;
-
-    case SYS_KILL:
-        kill();
         break;
 
     case SYS_WRITE:
         if (check(ptr+5)==false || check(ptr+6)==false ||
         check (ptr+7)==false || check(*(ptr+6))==false)
-            kill();
+            exit(-1);
         f->eax = write(*(ptr+5),*(ptr+6),*(ptr+7)); //write ha 3 argomenti--> ptr+5,6,7
         break;
 
     case SYS_OPEN:
       if(!check (ptr+1) || !check(*(ptr+1)))
-        kill();
+        exit(-1);
       f->eax = open (*(ptr+1));//open ha 1 argomento --> ptr+1
       break;
 
     case SYS_CLOSE:
       if (!check(ptr+1))
-        kill();
+        exit(-1);
       close(*(ptr+1));
       break;
 
     case SYS_CREATE:
       if(!check(ptr+4) || !check(ptr+5) || !check(*(ptr+4)))
-        kill();
+        exit(-1);
       f->eax = create (*(ptr+4), *(ptr+5));//write ha 2 argomenti--> ptr+4,5
       break;
 
      case SYS_READ:
       if (!check(ptr+5) || !check (ptr+6) || !check (ptr+7) || !check (*(ptr+6)))
-        kill();
+        exit(-1);
       f->eax=read(*(ptr+5),*(ptr+6),*(ptr+7));//read ha 3 argomenti--> ptr+5,6,7
       break;
 
     case SYS_FILESIZE:
       if (!check(ptr+1))
-        kill();
+        exit(-1);
       f->eax = filesize(*(ptr+1));//filesize ha 1 argomento --> ptr+1
       break;
 
     default:
-      // Numero System Call invalido, kill del processo
+      // Numero System Call invalido, exit(-1) del processo
       printf("Invalid System Call number\n");
-      kill();
+      exit(-1);
       break;
   }
 }
@@ -130,6 +122,7 @@ void halt (void){
 /* Apre il file */
 int open(const char * file)
 {
+  // finire di implementare
   lock_acquire(&file_lock);  // acquisco il lock
   struct file *file_p = filesys_open(file);   // apertura del file
   lock_release(&file_lock);  // rilascio del lock
@@ -151,13 +144,13 @@ void close (int fd)
   // Controllo se fd sia uguale a STDIN_FILENO o STDOUT_FILENO
   if (fd == STDIN_FILENO || fd == STDOUT_FILENO) // vorrei evitare di effettuare operazioni su stdin o stdout
     return;
-  
+
   // Prendo il file equivalente a fd sotto forma di file_desc
   struct file_desc * fd_el = get_fd(fd);
 
   if (fd_el == NULL)	// se è nullo allora esco dalla funzione
     return -1;
-  
+
   lock_acquire(&file_lock);	// Acquisco il lock
   file_close(fd_el->fp);	// Chiudo il file usando una sys function per i file
   lock_release(&file_lock);
@@ -197,12 +190,6 @@ void exit (int status){
     thread_exit();
 }
 
-/* Esco dal processo con code -1 */
-void kill(){
-
-  exit(-1);
-}
-
 int write (int fd, const void *buff, unsigned size){
 
     int num_bytes = -1; // Inizializzo il numero di byte scritti a -1
@@ -225,6 +212,24 @@ int write (int fd, const void *buff, unsigned size){
     lock_release(&file_lock);
 
     return num_bytes;
+}
+
+struct file_desc *get_fd (int fd) {
+
+    struct thread *thread_corrente = thread_current();
+    struct list_elem *elemento_lista = list_begin(&thread_corrente->file_list);
+
+    while (elemento_lista != list_end(&thread_corrente->file_list)) {
+        struct file_desc *descrittore_file = list_entry(elemento_lista, struct file_desc, elem);
+
+        // Verifico se l'fd del descrittore di file corrente corrisponde all'fd cercato.
+        if (descrittore_file->fd == fd)
+            return descrittore_file;
+
+        elemento_lista = list_next(elemento_lista);
+    }
+
+    return NULL; // Restituisco NULL se l'fd non è stato trovato nella lista.
 }
 
 //crea un nuono file|non lo apre
@@ -283,22 +288,4 @@ int filesize (int fd)
   int length = file_length(fd_elem->fp); //Ottengo la lunghezza del file con file_length (filesys/file.c)
   lock_release(&file_lock);//rilascio il lock
   return length;//ritorno la lunghezza del file
-}
-
-struct file_desc *get_fd (int fd) {
-
-    struct thread *thread_corrente = thread_current();
-    struct list_elem *elemento_lista = list_begin(&thread_corrente->file_list);
-
-    while (elemento_lista != list_end(&thread_corrente->file_list)) {
-        struct file_desc *descrittore_file = list_entry(elemento_lista, struct file_desc, elem);
-
-        // Verifico se l'fd del descrittore di file corrente corrisponde all'fd cercato.
-        if (descrittore_file->fd == fd)
-            return descrittore_file;
-
-        elemento_lista = list_next(elemento_lista);
-    }
-
-    return NULL; // Restituisco NULL se l'fd non è stato trovato nella lista.
 }

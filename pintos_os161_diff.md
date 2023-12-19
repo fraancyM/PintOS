@@ -387,7 +387,6 @@ enum
 Noi abbiamo scelto di implementare:
 + SYS_HALT
 + SYS_EXIT
-+ SYS_KILL
 + SYS_WRITE
 + SYS_OPEN
 + SYS_CLOSE
@@ -510,15 +509,6 @@ void exit (int status){
 }
 ```
 Il parametro `status` è il codice di uscita del processo che sta terminando e verrà restituito al processo genitore per indicare lo stato di terminazione del processo.
-
-### SYS_KILL ###
-
-
-```c
-void kill(){
-  exit(-1);
-}
-```
 
 ### SYS_WRITE ###
 
