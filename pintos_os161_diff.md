@@ -698,16 +698,14 @@ L'esecuzione dei test genera dei file di errors, output e result in `src/userpro
 
 ### Come runnare i test ###
 
-Per eseguire i test relativi alle system calls si entra nel percorso `src/userprog` e si lancia il comando `make`. In questo modo viene generata in `userprog` la cartella `build`, in cui viene compilato il kernel. Dal percorso `src/userprog/build` è possibile eseguire tutti i test disponibili con il comando `make check`, oppure può essere eseguito un test specifico nel seguente modo: `make tests/userprog/exit_test.result`
+Per eseguire i test relativi alle system calls si entra nel percorso `src/userprog` e si lancia il comando `make`. In questo modo viene generata in `userprog` la cartella `build`, in cui viene compilato il kernel. Dal percorso `src/userprog/build` è possibile eseguire tutti i test disponibili con il comando `make check`, oppure può essere eseguito un test specifico nel seguente modo: `make tests/userprog/exit.result`
 
-Esempio Exit test superato
-![exit_test](./images/exit_test.png)
+Esempio test exit superato
+![exit](./images/exit_test.png)
 
 #### Test eseguiti per verificare il funzionamento corretto delle system calls implementate: ####
 
-+ halt
-+ exit
-+ kill
++ halt, exit
 + write
 
   + **write-zero**: il test verifica il comportamento della syscall write quando si tenta di scrivere 0 byte in un file. Solitaente la syscall restituisce il numero effettivo di byte scritti o -1 in caso di errore. Nel caso in cui il numero di byte da scrivere sia 0, la write dovrebbe restituire 0 senza scrivere effettivamente nulla nel file.
@@ -753,6 +751,12 @@ Esempio Exit test superato
   + **create-long**: la creazione di un file con un nome così lungo dovrebbe fallire, questo test verifica come è gestita questa situazione. (errore create)
   + **create-null**: questo test tenta di creare un un file con puntatore nullo. (errore create)
   + **create-normal**: questo test serve a verificare la capacità  di creare file ordinari e vuoti. (successo create)
+
+
+Test superati delle syscall implementate (comando `make check`)
+![test1](./images/test1.png)
+
+![test2](./images/test2.png)
 
 
   ## DEBUG ##
