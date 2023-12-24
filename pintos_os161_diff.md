@@ -209,6 +209,51 @@ _Pintos_ possiede anche una "supplemental page table" che integra la page table 
 Per questi motivi _Pintos_ possiede un sistema di paginazione e memoria virtuale simile a quello presente su OS161, mentre la sostanziale differenza risiede nel livello di complessità con cui sono state implementate queste funzioni.
 La paginazione presente in OS161 è più avanzata, offrendo quindi funzionalità aggiuntive rispetto a Pintos.
 
+```c
+/* OS161 */
+/* method to walk through the page table and find the matching entry if it exists, else return NULL */
+struct page_table_entry * pgdir_walk(struct addrspace * as, vaddr_t va) {
+	
+	struct page_table_entry * tempNode = as->firstNode;
+	KASSERT((va & PAGE_FRAME) == va);	
+	// if page table has no entries, return NULL
+	if (tempNode == NULL) return NULL;
+
+	// else, search for matching nodes
+	while (tempNode != NULL) {
+		KASSERT(tempNode->va < 0x80000000);
+		if ( (tempNode->va) == va) {
+			return tempNode;
+		}
+		tempNode = tempNode->next;
+	}
+
+	// last case, full page table scanned and entry not found
+	return NULL;
+		
+}
+```
+
+```c
+/* Pintos */
+/* Looks up the physical address that corresponds to user virtual
+   address UADDR in PD.  Returns the kernel virtual address
+   corresponding to that physical address, or a null pointer if
+   UADDR is unmapped. */
+void *
+pagedir_get_page (uint32_t *pd, const void *uaddr) 
+{
+  uint32_t *pte;
+
+  ASSERT (is_user_vaddr (uaddr));
+  
+  pte = lookup_page (pd, uaddr, false);
+  if (pte != NULL && (*pte & PTE_P) != 0)
+    return pte_get_page (*pte) + pg_ofs (uaddr);
+  else
+    return NULL;
+}
+```
 
 **Gestione delle chiamate**
 
