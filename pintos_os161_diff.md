@@ -1,6 +1,6 @@
 # Progetto 1.1: Analisi comparativa tra OS161 e altri sistemi operativi open-source all'avanguardia per sistemi embedded e computer general purpose
 
-Per questo progetto abbiamo scelto di analizzare _pintOS_, un sistema operativo didattico open source per l'architettura del set di istruzioni x86, attualmente in uso in diversi istituti. Fu creato all'università di Stanford da Ben Pfaff nel 2004, originariamente pensato per sostituire il sistema operativo NachOS, un sistema simile creato dalla University of California a Berkeley. A differenza di NachOS, PintOS può essere eseguito sull'hardware x86 reale, sebbene venga spesso eseguito su un'emulatore di sistema, come Bochs o Qemu. Noi abbiamo utilizzato il simulatore QEMU.
+Per questo progetto abbiamo scelto di analizzare _pintOS_, un sistema operativo didattico open source per l'architettura del set di istruzioni x86, attualmente in uso in diversi istituti. Fu creato all'università di Stanford da Ben Pfaff nel 2004, originariamente pensato per sostituire il sistema operativo NachOS, un sistema simile creato dalla University of California a Berkeley. A differenza di NachOS, PintOS può essere eseguito sull'hardware x86 reale, sebbene venga spesso eseguito su un'emulatore di sistema, come Bochs o Qemu (noi abbiamo utilizzato QEMU).
 
 Di seguito verranno esaminate nel dettaglio le sue caratteristiche e messe a confronto con il sistema operativo OS161, studiato durante il corso di Programmazione di Sistema.  
 
@@ -10,27 +10,26 @@ Di seguito verranno esaminate nel dettaglio le sue caratteristiche e messe a con
 
 _OS161_ è progettato come un sistema operativo monolitico, dove tutti i componenti chiave, come il kernel e i driver dei dispositivi, risiedono in uno spazio di indirizzamento comune.
 
-_pintOS_ invece è progettato come un sistema operativo di tipo microkernel, che significa che il kernel è diviso in componenti più piccoli e indipendenti chiamati thread utente. Questi thread utente implementano le diverse funzionalità del sistema operativo.
+_pintOS_ invece è progettato come un sistema operativo di tipo microkernel, dove il kernel è diviso in componenti più piccoli e indipendenti chiamati "thread utente". Ogni thread utente contiene le informazioni necessarie per l'esecuzione del processo, come il codice del programma, lo stato del processore e lo stato di I/O. I thread utente sono implementati come thread del kernel, il che semplifica la gestione dei processi.
 
-![Architettura di PintOS](./images/Pintos_Architecture.png)
+![Architettura](./images/Pintos_Architecture.png)
 
-_pintOS_ utilizza il concetto di "thread utente" per rappresentare i processi. Ogni thread utente contiene le informazioni necessarie per l'esecuzione del processo, come il codice del programma, lo stato del processore e lo stato di I/O. I thread utente sono implementati come thread del kernel, il che semplifica la gestione dei processi.
 
 ## System Calls ##
 
-Le system calls (chiamate di sistema) sono funzioni fornite dal sistema operativo per consentire ai programmi di interagire con il kernel (il nucleo del sistema operativo) e sfruttare le risorse del sistema, come l'hardware, i file, la memoria e altro. Sono fondamentali per il funzionamento dei sistemi operativi e svolgono un ruolo cruciale in vari aspetti:
+Le system calls (chiamate di sistema) sono funzioni fornite dal sistema operativo per consentire ai programmi di interagire con il kernel (il nucleo del sistema operativo) e sfruttare le risorse del sistema, come l'hardware, i file, la memoria. Queste sono fondamentali per il funzionamento dei sistemi operativi e svolgono un ruolo cruciale in vari aspetti:
 
 1. **Gestione delle risorse**: Le system calls consentono ai programmi di richiedere l'allocazione e la liberazione di risorse hardware, come memoria, CPU e dispositivi di I/O. Ad esempio, una system call può essere utilizzata per richiedere memoria dinamica o per leggere da un file su disco.
 
-2. **Protezione**: Le system calls impediscono ai programmi utente di accedere direttamente alle risorse hardware o di eseguire operazioni pericolose. Questo garantisce che il sistema operativo abbia il controllo su quali risorse vengono allocate o condivise tra i processi e previene l'accesso non autorizzato.
+2. **Protezione**: Le system calls impediscono ai programmi utente di accedere direttamente alle risorse hardware o di eseguire operazioni pericolose. Ciò garantisce maggior controllo su quali risorse vengono allocate o condivise tra i processi e previene l'accesso non autorizzato.
 
-3. **Comunicazione tra processi**: Le system calls consentono la comunicazione tra i processi. Ad esempio, è possibile utilizzare system calls per creare processi figlio, condividere dati tra processi o sincronizzare l'esecuzione di processi diversi.
+3. **Comunicazione tra processi**: Le system calls consentono la comunicazione tra i processi. Ad esempio, è possibile utilizzarle per creare processi figlio, condividere dati tra processi o sincronizzare l'esecuzione di processi diversi.
 
-4. **Gestione dei file**: Molte system calls sono dedicate alla gestione dei file, inclusa la creazione, l'apertura, la lettura, la scrittura e la chiusura dei file. Queste operazioni sono fondamentali per l'archiviazione e il recupero dei dati.
+4. **Gestione dei file**: Molte system calls sono dedicate alla gestione dei file, come la creazione, l'apertura, la lettura, la scrittura e la chiusura dei file. Queste operazioni sono fondamentali per l'archiviazione e il recupero dei dati.
 
 5. **Gestione delle interruzioni**: Le system calls consentono al kernel di gestire le interruzioni hardware e rispondere a eventi come la pressione di un tasto sulla tastiera o l'arrivo di dati in una porta di rete.
 
-6. **Comunicazione di rete**: System calls sono spesso utilizzate per la comunicazione di rete, consentendo ai programmi di inviare e ricevere dati su una rete, come Internet.
+6. **Comunicazione di rete**: Le system calls sono spesso utilizzate per la comunicazione di rete, consentendo ai programmi di inviare e ricevere dati su una rete, come Internet.
 
 _Os161_ e _Pintos_, sono sistemi operativi progettati per scopi didattici, per cui in entrambi nativamente manca il supporto completo delle system calls, come si può vedere di seguito:
 
@@ -94,12 +93,12 @@ static void syscall_handler (struct intr_frame *f UNUSED) {
 
 Le politiche di scheduling di _OS161_ e _pintOS_ risultano simili, essendo sistemi operativi didattici, utilizzati spesso in corsi universitari per insegnare i principi dei sistemi operativi.
 
-Infatti, entrambi utilizzano una politica di scheduling semplice e predefinita basata sull'approccio Round Robin (RR), dove i processi vengono assegnati in base al loro ordine di arrivo. 
+Entrambi utilizzano una politica di scheduling semplice e predefinita basata sull'approccio Round Robin (RR), dove i processi vengono assegnati in base al loro ordine di arrivo. 
 Tuttavia, sia in _OS161_ che in _Pintos_, è possibile implementare, come estensione del sistema operativo, politiche di scheduling più avanzate come il Multi-Level Feedback Queue (MLFQ), il Dynamic Priority Scheduling o l'Inverse Priority Scheduling. 
 
 ### Implementazione ###
 
-Entrambi i sistemi operativi, implementano l'algoritmo Round Robin, in cui i processi vengono schedulati in modo circolare. Ogni processo riceve un quantum di tempo assegnato (in _Pintos_ `#define TIME_SLICE 4`) e, quando il quantum scade, il processo viene messo in coda e viene eseguito il successivo processo pronto. Questo ciclo di esecuzione continua finchè ci sono processi nella coda pronti ad essere eseguiti. Non c'è nessuna gestione di priorità: tutti i thread sono trattati allo stesso modo.
+Sia OS161 che Pintos implementano l'algoritmo Round Robin, in cui i processi vengono schedulati in modo circolare. Ogni processo riceve un quantum di tempo assegnato (in _Pintos_ `#define TIME_SLICE 4`) e, quando il quantum scade, il processo viene messo in coda e viene eseguito il successivo processo pronto. Questo ciclo di esecuzione continua finchè ci sono processi nella coda pronti ad essere eseguiti.
 
 In _Pintos_ la funzione responsabile di "restituire" la CPU allo scheduler e consentire agli altri thread di essere eseguiti è la `thread_yield`.
 
@@ -143,19 +142,55 @@ static void schedule (void) {
   thread_schedule_tail (prev);
 }
 ```
-La funzione `schedule()`, nel dettaglio, svolge un ruolo essenziale: ottiene un riferimento al thread corrente con `running_thread()` e un riferimento al successivo thread da eseguire con `next_thread_to_run()`. Il `next_thread_to_run` è selezionato dallo scheduler e rappresenta il successivo thread nella coda dei thread pronti (`ready_list`). Se il thread corrente (`cur`) è diverso dal successivo thread da eseguire (`next`), la funzione chiama `switch_threads` per effettuare una commutazione di contesto tra i due thread, ossia restituire un riferimento al thread che stava precedentemente in esecuzione. Questa operazione comporta la modifica dei registri della CPU in modo che il successivo thread possa essere eseguito. La funzione `schedule` richiama poi `thread_schedule_tail` per completare il processo di pianificazione e assicurarsi che il successivo thread sia in esecuzione. La variabile `prev` è utilizzata per tracciare il thread precedentemente in esecuzione, se è stato commutato.
+La funzione `schedule()`, nel dettaglio, svolge un ruolo essenziale: ottiene un riferimento al thread corrente con `running_thread()` e un riferimento al successivo thread da eseguire con `next_thread_to_run()`. Il `next_thread_to_run` è selezionato dallo scheduler e rappresenta il successivo thread nella coda dei thread pronti (`ready_list`). Se il thread corrente (`cur`) è diverso dal successivo thread da eseguire (`next`), la funzione chiama `switch_threads` per effettuare una commutazione di contesto tra i due thread, ossia restituisce un riferimento al thread che stava precedentemente in esecuzione. Questa operazione comporta la modifica dei registri della CPU in modo che il successivo thread possa essere eseguito. La funzione `schedule` richiama poi `thread_schedule_tail` per completare il processo di scheduling e assicurarsi che il successivo thread sia in esecuzione. La variabile `prev` è utilizzata per tracciare il thread precedentemente in esecuzione, se è stato commutato.
+
+In OS161, il meccanismo del Round Robin viene gestito tramite la funzione `hardclock()`, in `kern/thread/clock.c`, che viene periodicamente chiamata dal gestore delle interruzioni del clock hardware. All'interno di questa funzione possono essere chiamate altre 2 funzioni definite in `kern/thread/thread.c`:
+
+- `thread_consider_migration()` per abilitare la migrazione dei thread tra i core della CPU;
+- `schedule()` per cambiare l'ordine dei thread nella coda dei processi pronti (ma attualmente non compie alcuna azione).
+
+Successivamente, viene chiamata la funzione `thread_yield()` per far sì che il thread corrente ceda la CPU ad un altro thread tramite la `thread_switch()`.
+
+```c
+#define SCHEDULE_HARDCLOCKS	4	/* Reschedule every 4 hardclocks. */
+#define MIGRATE_HARDCLOCKS	16	/* Migrate every 16 hardclocks. */
+
+/* This is called HZ times a second (on each processor) by the timer code */
+void hardclock(void) {
+
+	curcpu->c_hardclocks++;
+	if ((curcpu->c_hardclocks % MIGRATE_HARDCLOCKS) == 0) {
+		thread_consider_migration();
+	}
+	if ((curcpu->c_hardclocks % SCHEDULE_HARDCLOCKS) == 0) {
+		schedule();
+	}
+	thread_yield();
+}
+```
+```c
+void schedule(void) {
+	/* You can write this. If we do nothing, threads will run in
+	 * round-robin fashion. */
+}
+```
+
+```c
+/* Yield the cpu to another process, but stay runnable. */
+void thread_yield(void) {
+
+	thread_switch(S_READY, NULL, NULL);
+    /* Il thread corrente è READY perchè ha consumato tutto il suo intervallo di tempo ed è costretto a cedere CPU ad un altro thread */
+}
+```
 
 ### Gestione delle priorità ###
 
-Nella versione base, per entrambi i sistemi, non esiste il concetto di priorità. Ciò significa che un processo continuerà ad essere eseguito finché non avrà terminato la sua esecuzione, indipendentemente dai requisiti di CPU di altri processi.
-
-### La gestione delle interruzioni ###
-
-_OS161_ ha un semplice sistema di gestione delle interruzioni, in cui le routine di servizio delle interruzioni salvano lo stato del processo corrente, eseguono il gestore di interruzioni ed infine ripristinano lo stato del processo. Questo approccio è facile da implementare, ma non è molto flessibile e può portare a latenze di interruzioni elevate se si verificano molte interruzioni in successione.
+Nella versione base, per entrambi i sistemi, non esiste il concetto di priorità: tutti i thread sono trattati allo stesso modo. Ciò significa che un processo continuerà ad essere eseguito finché non avrà terminato la sua esecuzione, indipendentemente dai requisiti di CPU di altri processi.
 
 ### Conclusioni ###
 
-In conclusione, _OS161_ e _Pintos_, sono entrambi sistemi operativi utilizzati per scopi didattici, tuttavia il primo è più orientato all'apprendimento dei concetti dei sistemi operativi con un'implementazione semplice, il secondo fornisce una base più operativa per gli studenti, poichè mira ad essere un sistema operativo di base che sia in grado di eseguire applicazioni reali.
+In conclusione, _OS161_ e _Pintos_, sono entrambi sistemi operativi utilizzati per scopi didattici, tuttavia il primo è più orientato all'apprendimento dei concetti dei sistemi operativi con un'implementazione semplice, il secondo fornisce una base più operativa per gli studenti, poichè mira ad essere un sistema operativo di base in grado di eseguire applicazioni reali.
 Entrambi gli ambienti sono validi per l'apprendimento dei principi di scheduling, ma il loro focus differisce leggermente in base agli obiettivi educativi.
 
 ## Gestione della memoria ##
@@ -312,10 +347,11 @@ Inizialmente è stata configurata una macchina virtuale con il sistema operativo
 Occorreva poi indirizzare Qemu verso Pintos in uno script bash in modo da poter eseguire comandi Pintos. 
 
 $HOME: /home/francy
+
 $PINTOSHOME:/home/francy/osF14/pintos
 
 - **Aggiornamento della variabile di ambiente PATH:**
-è stata aggiunta la riga `PATH=$PINTOSHOME/src/utils:$PATH` in in `HOME/.bashrc` e riavviato il terminale con il comando `source /.bashrc`.
+è stata aggiunta la riga `PATH=$PINTOSHOME/src/utils:$PATH` in `HOME/.bashrc` e riavviato il terminale con il comando `source /.bashrc`.
 
 - **GDBMACROS:**
 
@@ -701,7 +737,9 @@ L'esecuzione dei test genera dei file di errors, output e result in `src/userpro
 Per eseguire i test relativi alle system calls si entra nel percorso `src/userprog` e si lancia il comando `make`. In questo modo viene generata in `userprog` la cartella `build`, in cui viene compilato il kernel. Dal percorso `src/userprog/build` è possibile eseguire tutti i test disponibili con il comando `make check`, oppure può essere eseguito un test specifico nel seguente modo: `make tests/userprog/exit.result`
 
 Esempio test exit superato
+
 ![exit](./images/exit_test.png)
+
 
 #### Test eseguiti per verificare il funzionamento corretto delle system calls implementate: ####
 
@@ -845,3 +883,14 @@ Vengono aggiunte le seguenti variabili:
 * _struct file *file;_ è un puntatore al file eseguibile associato al thread corrente.
 * _struct semaphore child_sem;_ è un semaforo che uso quando un thread attende un processo figlio.
 * _tid_t waiton_child;_ tiene traccia per quale thread figlio, il thread è in attesa.
+
+
+### DOCUMENTAZIONE ###
+
+https://piazza.com/class_profile/get_resource/jl28zj99fj24yy/jldagvykoum59l
+
+https://web.stanford.edu/~ouster/cgi-bin/cs140-spring20/pintos/pintos_6.html
+
+https://cs162.org/static/proj/pintos-docs/ 
+
+https://pintosiiith.wordpress.com/
