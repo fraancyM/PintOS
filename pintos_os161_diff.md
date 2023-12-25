@@ -210,8 +210,8 @@ _Pintos_ possiede anche una "supplemental page table" per integrare dati addizio
 Per questi motivi _Pintos_ possiede un sistema di paginazione e memoria virtuale simile a quello presente su OS161, mentre la sostanziale differenza risiede nel livello di complessità con cui sono state implementate queste funzioni.
 La paginazione presente in OS161 è più avanzata, offrendo quindi funzionalità aggiuntive rispetto a Pintos.
 
++ OS161
 ```c
-/* OS161 */
 /* method to walk through the page table and find the matching entry if it exists, else return NULL */
 struct page_table_entry * pgdir_walk(struct addrspace * as, vaddr_t va) {
 	
@@ -235,8 +235,8 @@ struct page_table_entry * pgdir_walk(struct addrspace * as, vaddr_t va) {
 }
 ```
 
++ Pintos
 ```c
-/* Pintos */
 /* Looks up the physical address that corresponds to user virtual
    address UADDR in PD.  Returns the kernel virtual address
    corresponding to that physical address, or a null pointer if
@@ -255,14 +255,6 @@ pagedir_get_page (uint32_t *pd, const void *uaddr)
     return NULL;
 }
 ```
-
-**Gestione delle chiamate**
-
-In _Pintos_, le chiamate di sistema (system calls) sono gestite tramite una serie di passaggi che coinvolgono l'utente, il kernel e il sistema operativo.
-
-Quando un processo utente desidera effettuare una chiamata di sistema utilizza una funzione o un'istruzione speciale, che genera un'interruzione o una trap e questa operazione passa il controllo al kernel. Una volta generata l'interruzione, l'exception handler è responsabile di identificare il tipo di chiamata di sistema richiesta e di instradare l'esecuzione al gestore appropriato. Il kernel di _Pintos_ effettua la validazione e l'autenticazione delle chiamate di sistema. Verifica che il processo utente abbia i diritti necessari per eseguire la chiamata di sistema richiesta e che i parametri passati siano validi, e una volta che il kernel ha verificato e autenticato la chiamata di sistema, esegue il servizio richiesto dal processo utente. Dopo aver eseguito la chiamata di sistema e soddisfatto la richiesta del processo utente, il kernel restituisce il controllo al processo utente.
-
-_OS161_ implementa in maniera simile a Pintos la gestione delle chiamate, tenendo però conto delle differenze di codice e strutture dati utilizzate da entrambi i sistemi operativi.
 
 ## Meccanismi di sincronizzazione ##
 
@@ -287,7 +279,7 @@ La disabilitazione degli interrupt è una pratica comune nei sistemi operativi p
 
 **_Pintos_** è progettato come un **kernel preemptible**, il che significa che i thread del kernel possono essere interrotti in qualsiasi momento. 
 
-La disabilitazione degli interrupt viene utilizzata per impedire la prelazione automatica dei thread da parte del timer o di altri interrupt, garantendo che il thread in esecuzione abbia la precedenza. Tuttavia, in Pintos si cerca di limitare l'uso della disabilitazione degli interrupt per evitare perdite di informazioni importanti, come i clock del timer o gli eventi di input. È fortemente suggerita la sincronizzazione esplicita utilizzando le primitive di sincronizzazione offerte dal sistema (_`thread/interrupt.h`_).
+La disabilitazione degli interrupt viene utilizzata per impedire la prelazione automatica dei thread da parte del timer o di altri interrupt, garantendo che il thread in esecuzione abbia la precedenza. Tuttavia, in Pintos si cerca di limitarne l'uso per evitare perdite di informazioni importanti, come i clock del timer o gli eventi di input. È fortemente suggerita la sincronizzazione esplicita utilizzando le primitive di sincronizzazione offerte dal sistema (_`thread/interrupt.h`_).
 
 In **OS161**, la disabilitazione degli interrupt è gestita attraverso le funzioni `spl0()`, `splhigh()`, e `splx(s)` ( _`kern/include/spl.h`_ ). Queste funzioni consentono di impostare il livello di priorità degli interrupt, bloccando quelli meno urgenti durante l'esecuzione di sezioni critiche. 
 
@@ -382,7 +374,6 @@ Le operazioni devono essere eseguite atomicamente, e il thread corrente deve pos
 In entrambi i sistemi operativi, l'obiettivo delle condition variables è consentire ai thread di aspettare che determinate condizioni diventino vere, migliorando l'efficienza della sincronizzazione. 
 
 _In **Pintos** si fa anche riferimento al concetto di "monitor" come una forma avanzata di sincronizzazione rispetto a semafori o lock. Un monitor è costituito da dati da sincronizzare, un monitor lock e variabili di condizione._
-
 
 
 # Sezione II #
@@ -843,7 +834,7 @@ Test superati delle syscall implementate (comando `make check`)
 ![test2](./images/test2.png)
 
 
-  ## DEBUG ##
+## DEBUG ##
 
 Pintos viene eseguito sul simulatore Qemu, per cui è necessario connettere in remoto un'applicazione GDB all'istanza di Pintos in questo simulatore per eseguire il debug.
 
@@ -937,6 +928,15 @@ https://piazza.com/class_profile/get_resource/jl28zj99fj24yy/jldagvykoum59l
 
 https://web.stanford.edu/~ouster/cgi-bin/cs140-spring20/pintos/pintos_6.html
 
+https://piazza.com/class_profile/get_resource/itgbdzpqj6417o/iuzt04qzagh40p
+
 https://cs162.org/static/proj/pintos-docs/ 
 
 https://pintosiiith.wordpress.com/
+
+https://www.khoury.northeastern.edu/home/skotthe/classes/cs5600/fall/2016/labs/pintos-setup.html
+
+https://jeason.gitbooks.io/pintos-reference-guide-sysu/content/synchronization.html
+
+http://users.cms.caltech.edu/~donnie/cs124/pintos_4.html
+
