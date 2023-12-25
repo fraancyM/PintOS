@@ -180,7 +180,8 @@ void schedule(void) {
 void thread_yield(void) {
 
 	thread_switch(S_READY, NULL, NULL);
-    /* Il thread corrente è READY perchè ha consumato tutto il suo intervallo di tempo ed è costretto a cedere CPU ad un altro thread */
+    /* Il thread corrente è READY perchè ha consumato tutto il suo intervallo di tempo 
+    ed è costretto a cedere CPU ad un altro thread */
 }
 ```
 
@@ -195,13 +196,13 @@ Entrambi gli ambienti sono validi per l'apprendimento dei principi di scheduling
 
 ## Gestione della memoria ##
 
-**Paging e virtual memory**
+### Paging e virtual memory ###
 
-Pintos implementa una gestione della memoria virtuale di base. Questo include la paginazione e la gestione dello spazio degli indirizzi dei processi, consentendo ai processi di operare in spazi di indirizzamento separati e protetti. 
+Pintos implementa una gestione della memoria virtuale base, che include la paginazione e la gestione dello spazio degli indirizzi dei processi, consentendo ai processi di operare in spazi di indirizzamento separati e protetti. 
 
-Più in particolare, la memoria fisica di _Pintos_ è suddivisa in pagine di dimensioni fisse, e ogni pagina ha un numero di pagina univoco. Ogni processo ha un proprio spazio di indirizzamento virtuale, suddiviso in pagine. La mappatura tra gli indirizzi virtuali dei processi e gli indirizzi fisici delle pagine è gestita da una tabella delle pagine (Page Table) specifica per ciascun processo. Esso fa uso di strutture dati quali vettori, liste, bitmap ecc... ma principalmente _Pintos_ include una struttura di tipo BitMap per tenere traccia dell'utilizzo in un insieme di risorse (identiche), e inoltre utilizza anche una struttura di tipo Hash Table che supporta, in maniera efficiente, gli inserimenti ed eliminazioni su un'ampia gamma di tabelle. 
+In particolare, la memoria fisica di _Pintos_ è suddivisa in pagine di dimensioni fisse, ognuna con un numero di pagina univoco. Ogni processo ha un proprio spazio di indirizzamento virtuale, suddiviso in pagine. La mappatura tra gli indirizzi virtuali dei processi e gli indirizzi fisici delle pagine è gestita da una tabella (Page Table) specifica per ciascun processo. Esso fa uso di strutture dati quali vettori, liste, bitmap, ma principalmente _Pintos_ include una struttura di tipo BitMap per tenere traccia dell'utilizzo in un insieme di risorse (identiche). Inoltre, viene utilizzata anche una struttura di tipo Hash Table che, in maniera efficiente supporta gli inserimenti ed eliminazioni su un'ampia gamma di tabelle. 
 
-_Pintos_ possiede anche una "supplemental page table" che integra la page table con dati addizionali per ogni pagina, e il suo utilizzatore più importante è il "page fault handler". Viene usata principalmente per due motivi:
+_Pintos_ possiede anche una "supplemental page table" per integrare dati addizionali per ogni pagina, e il suo utilizzatore più importante è il "page fault handler". Viene usata principalmente per due motivi:
 
 1) Durante un page fault, il kernel cerca la pagina virtuale che ha causato l'errore nella tabella delle "supplemental page table" per scoprire quali dati dovrebbero essere presenti.
 2) Il kernel consulta la "supplemental page table" quando un processo termina, per decidere quali risorse liberare.
@@ -227,23 +228,23 @@ Una risorsa condivisa è una risorsa che può essere utilizzata da più processi
 
 Se l'accesso concorrente alle risorse condivise non viene gestito opportunamente si può incorrere nei seguenti problemi:
 
-•	**Race condition**: due o più processi o thread cercano di accedere contemporaneamente alla stessa risorsa condivisa senza sincronizzazione adeguata. Questo può portare a risultati imprevedibili o errati poiché l'ordine di esecuzione delle istruzioni non è garantito
+•	**Race condition**: due o più processi o thread cercano di accedere contemporaneamente alla stessa risorsa condivisa senza sincronizzazione adeguata. Questo può portare a risultati imprevedibili o errati poiché l'ordine di esecuzione delle istruzioni non è garantito;
 
-•	**Deadlock**: due o più processi o thread si bloccano reciprocamente, ciascuno aspettando che una risorsa venga rilasciata dall'altro
+•	**Deadlock**: due o più processi o thread si bloccano reciprocamente, ciascuno aspettando che una risorsa venga rilasciata dall'altro;
 
-•	**Starvation**: un processo o thread viene costantemente escluso dall'accesso a una risorsa condivisa da altri processi o thread che la utilizzano in modo esclusivo
+•	**Starvation**: un processo o thread viene costantemente escluso dall'accesso a una risorsa condivisa da altri processi o thread che la utilizzano in modo esclusivo.
 
-I meccanismi di sincronizzazione consentono di evitare questi problemi garantendo che l'accesso alle risorse condivise sia eseguito in modo sicuro e affidabile.
+I meccanismi di sincronizzazione consentono di evitare questi problemi, garantendo che l'accesso alle risorse condivise sia eseguito in modo sicuro e affidabile.
 
 ### Disabilitazione degli interrupt ###
 
-La disabilitazione degli interrupt è una pratica comune nei sistemi operativi per garantire la coerenza e la correttezza delle operazioni eseguite dai thread del kernel, specialmente in contesti critici come la gestione di interruzioni esterne o la sincronizzazione tra i thread stessi.
+La disabilitazione degli interrupt è una pratica comune nei sistemi operativi per garantire la coerenza e la correttezza delle operazioni eseguite dai thread del kernel, specialmente in contesti critici, come la gestione di interruzioni esterne o la sincronizzazione tra i thread stessi.
 
 **_Pintos_** è progettato come un **kernel preemptible**, il che significa che i thread del kernel possono essere interrotti in qualsiasi momento. 
 
-La disabilitazione degli interrupt viene utilizzata per impedire la prelazione automatica dei thread da parte del timer o di altri interrupt, garantendo che il thread in esecuzione abbia la precedenza. Tuttavia, in Pintos si cerca di limitare l'uso della disabilitazione degli interrupt per evitare perdite di informazioni importanti, come i segni di spunta del timer o gli eventi di input. È fortemente suggerita la sincronizzazione esplicita utilizzando le primitive di sincronizzazione offerte dal sistema. (_thread/interrupt.h_)
+La disabilitazione degli interrupt viene utilizzata per impedire la prelazione automatica dei thread da parte del timer o di altri interrupt, garantendo che il thread in esecuzione abbia la precedenza. Tuttavia, in Pintos si cerca di limitare l'uso della disabilitazione degli interrupt per evitare perdite di informazioni importanti, come i clock del timer o gli eventi di input. È fortemente suggerita la sincronizzazione esplicita utilizzando le primitive di sincronizzazione offerte dal sistema (_`thread/interrupt.h`_).
 
-In **OS161**, la disabilitazione degli interrupt è gestita attraverso le funzioni `spl0()`, `splhigh()`, e `splx(s)` ( _kern/include/spl.h_ ). Queste funzioni consentono di impostare il livello di priorità degli interrupt, bloccando quelli meno urgenti durante l'esecuzione di sezioni critiche. 
+In **OS161**, la disabilitazione degli interrupt è gestita attraverso le funzioni `spl0()`, `splhigh()`, e `splx(s)` ( _`kern/include/spl.h`_ ). Queste funzioni consentono di impostare il livello di priorità degli interrupt, bloccando quelli meno urgenti durante l'esecuzione di sezioni critiche. 
 
 Entrambi i sistemi operativi utilizzano la disabilitazione degli interrupt, tuttavia **Pintos** offre una maggiore flessibilità, incoraggiando l'uso di primitive di sincronizzazione più specifiche per evitare l'eccessiva disabilitazione degli interrupt. D'altra parte, **OS161** semplifica la gestione degli interrupt fornendo solo tre livelli di priorità.
 In entrambi i sistemi operativi Pintos e OS161, la disabilitazione degli interrupt è una pratica delicata che richiede attenzione. La scelta specifica di come gestire gli interrupt dipende dalle esigenze del sistema e dalla progettazione del kernel. 
