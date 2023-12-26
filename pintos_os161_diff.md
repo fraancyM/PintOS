@@ -380,24 +380,27 @@ _In **Pintos** si fa anche riferimento al concetto di "monitor" come una forma a
 
 ## INSTALLAZIONE SISTEMA OPERATIVO ##
 
-Inizialmente è stata configurata una macchina virtuale con il sistema operativo Ubuntu a 32 bit. Abbiamo poi scaricato il codice sorgente di Pintos dal sito ufficiale di Stanford (estratto tramite `tar -xzvf pintos.tar.gz`) e scaricato l'emulatore Qemu tramite `sudo apt-get install qemu`. 
-Occorreva poi indirizzare Qemu verso Pintos in uno script bash in modo da poter eseguire comandi Pintos. 
+Per settare Pintos è stata configurata una macchina virtuale con il sistema operativo Ubuntu a 32 bit. È stato poi scaricato il codice sorgente di Pintos dal sito ufficiale di Stanford (estratto tramite `tar -xzvf pintos.tar.gz`) e scaricato l'emulatore Qemu tramite `sudo apt-get install qemu`. 
+Occorreva indirizzare Qemu verso Pintos in modo da poter runnare il codice con esso. Per questo è stato settato il simulatore Qemu in `src/threads/Make.vars` tramite `SIMULATOR = --qemu`.
 
-$HOME: /home/francy
+**Aggiornamento della variabile di ambiente PATH:**
+è stata aggiunta la riga `export PATH=$PINTOSHOME/src/utils:$PATH` in `HOME/.bashrc` e riavviato il terminale con il comando `source ~/.bashrc`.
 
-$PINTOSHOME:/home/francy/osF14/pintos
-
-- **Aggiornamento della variabile di ambiente PATH:**
-è stata aggiunta la riga `PATH=$PINTOSHOME/src/utils:$PATH` in `HOME/.bashrc` e riavviato il terminale con il comando `source /.bashrc`.
-
-- **GDBMACROS:**
-
-- **Compilazione delle Utilities:**
-abbiamo modificato in `src/utils/pintos-gdb`
-e `src/utils/Makefile` e compilato la directory utils:
+**GDBMACROS:** per poter usare gdb è stata cambiata in `src/utils/pintos-gdb` la definizione di GDBMACROS puntando alla directory in cui è installato gdb-macros.
+```bash
+GDBMACROS = $PINTOSHOME/src/misc/gdb-macros
+```
+**Compilazione delle Utilities:** in `src/utils/Makefile` è stato sostituito `LDFLAGS = -lm` con `LDLIBS = -lm`. Successivamente viene compilata la directory utils:
 ```bash
 cd pintos/src/utils
 make
+```
+
+Variabili d'ambiente:
+```bash
+$HOME: /home/francy
+
+$PINTOSHOME: $HOME/pintos/os/PintOS/src/pintos/
 ```
 
 ## Implementazione di nuove funzionalità ##
@@ -786,46 +789,46 @@ Esempio test exit superato
   + **write-zero**: il test verifica il comportamento della syscall write quando si tenta di scrivere 0 byte in un file. Solitaente la syscall restituisce il numero effettivo di byte scritti o -1 in caso di errore. Nel caso in cui il numero di byte da scrivere sia 0, la write dovrebbe restituire 0 senza scrivere effettivamente nulla nel file.
   + **write-stdin**: tenta di scrivere su un file descriptor associato all'input standard (fd 0) della console (stdin).
   + **write-bad-fd**: il test cerca di scrivere su file descriptor non validi. L'obiettivo è capire come il sistema operativo gestisce tentativi di scrittura su file descriptor che non sono stati aperti correttamente.
-  + **write-normal**: verifica  che la syscall write funzioni correttamente quando si cerca di scrivere un file. Il test utilizza la syscall create per creare un file chiamato "test.txt" con i contenuti dell'array "sample" e apre il file utilizzando la syscall open per scrivere all'interno di esso. Alla fine verifica se il numero di byte scritti è uguale a quelli attesi, altrimenti il test fallisce.
+  + **write-normal**: verifica che la syscall write funzioni correttamente quando si cerca di scrivere in un file. Il test utilizza la syscall create per creare un file chiamato "test.txt" con i contenuti dell'array "sample" e apre il file utilizzando la syscall open per scrivere all'interno di esso. Alla fine verifica se il numero di byte scritti è uguale a quelli attesi, altrimenti il test fallisce.
   + **write-bad-ptr**: Questo test verifica il comportamento della syscall write quando si tenta di scrivere su file descriptor (fd) non validi. Il test esegue una serie di chiamate a write con diversi file descriptor, alcuni dei quali sono chiaramente non validi.
   + **write-boundary**: cerca di scrivere dati che si estendono su due pagine nello spazio degli indirizzi virtuali. Il test utilizza la funzione `copy_string_across_boundary` per ottenere un puntatore a una stringa che attraversa il confine di pagina virtuale. Questo test è importante per testare il comportamento della write quando i dati si estendono su più pagine.
 
 + open
 
-  + **open-bad-ptr**: il test è progettato per garantire che l'applicazione gestisca correttamente una situazione in cui viene passato un puntatore non valido alla chiamata di sistema open
-  + **open-boundary**: Il test è progettato per verificare il comportamento dell'applicazione nell'apertura di un file manipolato attraverso un confine di memoria.
-  + **open-empty**: Il test è progettato per verificare il comportamento dell'applicazione nell'apertura di un file vuoto.
-  + **open-missing**: Il test è progettato per verificare il comportamento dell'applicazione nell'apertura di un file non esistente.
-  + **open-normal**: questo test fa una chiamata a check_expected con un argomento che è una lista di stringhe. Le righe seguenti, fino a quando si trova nuovamente la stringa EOF, sono trattate come parte di questa stringa. Le istruzioni seguenti sono molto semplici e rappresentano una sequenza in due fasi: "(open-normal) begin" e "(open-normal) end". open-normal: exit(0) è un'annotazione che indica che quando il test raggiunge lo stato "open-normal", dovrebbe terminare con un codice di uscita 0.
+  + **open-bad-ptr**: il test verifica che venga gestita correttamente una situazione in cui viene passato un puntatore non valido alla chiamata di sistema open.
+  + **open-boundary**: questo test verifica il corretto comportamento nell'apertura di un file manipolato attraverso un confine di memoria.
+  + **open-empty**: il test verifica il comportamento corretto nell'apertura di un file vuoto.
+  + **open-missing**: Il test verifica il comportamento corretto nell'apertura di un file non esistente.
+  + **open-normal**: questo test fa una chiamata a `check_expected` con argomento una lista di stringhe. Le righe seguenti, fino a EOF, sono trattate come parte di questa stringa. Le istruzioni successive sono molto semplici e rappresentano una sequenza in due fasi: "(open-normal) begin" e "(open-normal) end". open-normal: exit(0) è un'annotazione che indica che quando il test raggiunge lo stato "open-normal", dovrebbe terminare con un codice di uscita 0.
   + **open-null**: Il test è progettato per verificare il comportamento dell'applicazione nell'apertura di un file nullo.
-  + **open-twice**: Il test è progettato per verificare il comportamento dell'applicazione nella duplice apertura di uno stesso file.
+  + **open-twice**: Il test è progettato per testare il comportamento di un file quando si tenta di aprirlo più volte.
 
 + close
  
-  + **close-bad-fd**: Il primo blocco testa una situazione in cui l'operazione di chiusura ha successo (exit(0)), mentre il secondo blocco simula un caso in cui la chiusura del file descriptor fallisce (exit(-1)). Infine, il test pass; indica che il test è stato superato con successo.
-  + **close-normal**: questo test fa una chiamata a check_expected con un argomento che è una lista di stringhe. Le righe seguenti, fino a quando si trova nuovamente la stringa EOF, sono trattate come parte di questa stringa. Queste istruzioni rappresentano una sequenza di operazioni che coinvolgono l'apertura e la chiusura di un file chiamato "sample.txt". Nella riga "close-normal: exit(0)" si indica che quando il test raggiunge lo stato "close-normal", dovrebbe terminare con un codice di uscita 0.
-  + **close-stdin**: testa l'operazione di chiusura del file descriptor stdin (close-stdin)
-  + **close-stdout**: testa l'operazione di chiusura del file descriptor stdout (close-stdout)
-  + **close-twice**: testa la gestione della chiusura ripetuta di un file (sample.txt) nel contesto di un file descriptor specifico (close-twice). Nel primo blocco di test, si apre il file sample.txt, lo si chiude una volta e poi si tenta di chiuderlo nuovamente. Il test indica che questa sequenza di operazioni dovrebbe terminare correttamente (exit code 0).
+  + **close-bad-fd**: Il primo blocco testa una situazione in cui l'operazione di chiusura ha successo (exit(0)), mentre il secondo blocco simula un caso in cui la chiusura del file descriptor fallisce (exit(-1)).
+  + **close-normal**: questo test fa una chiamata a `check_expected` con argomento una lista di stringhe. Le righe seguenti, fino a EOF, sono trattate come parte di questa stringa. Queste istruzioni rappresentano una sequenza di operazioni che coinvolgono l'apertura e la chiusura di un file chiamato "sample.txt". Nella riga "close-normal: exit(0)" si indica che quando il test raggiunge lo stato "close-normal", dovrebbe terminare con un codice di uscita 0.
+  + **close-stdin**: testa l'operazione di chiusura del file descriptor stdin.
+  + **close-stdout**: testa l'operazione di chiusura del file descriptor stdout.
+  + **close-twice**: verifica la gestione della chiusura ripetuta di un file (sample.txt) nel contesto di un file descriptor specifico (close-twice). Inizialmente, si apre il file sample.txt, lo si chiude una volta e poi si tenta di chiuderlo nuovamente. Il test si aspetta che questa sequenza di operazioni termini cosrrettamente (exit code 0).
 
 + read
 
-  + **read-bad-fd**: questo test cerca di leggere da descrittori di file invalidi. La chiamata di sistema read "deve fallire silenziosamente o terminare il processo con il codice di uscita -1". (errore read)
-  + **read-bad-ptr**: questo test cerca di leggere da un puntatore di memoria invalido. L'aspettativa è che la chiamata di sistema read con un puntatore di memoria invalido dovrebbe causare la terminazione del processo di test con un codice di uscita -1. (errore read)
-  + **read-boundary**: questo test verifica se è gestita correttamente la lettura di dati che attraversano il confine tra due pagine di memoria. (successo read)
-  + **read-normal**: questo test verifica che si sia in grado di leggere il file "sample.txt" in modo normale e verificare che il contenuto letto corrisponda al campione fornito (sample). Questo test è progettato per verificare la corretta implementazione della lettura di file. (successo read)
+  + **read-bad-fd**: il test cerca di leggere da descrittori di file invalidi. La chiamata di sistema read "deve fallire silenziosamente o terminare il processo con il codice di uscita -1". (errore read)
+  + **read-bad-ptr**: questo test cerca di leggere da un puntatore di memoria invalido. L'aspettativa è che la chiamata di sistema read con un puntatore di memoria invalido causi la terminazione del processo di test con un codice di uscita -1. (errore read)
+  + **read-boundary**: il test verifica se viene gestita correttamente la lettura di dati che attraversano il confine tra due pagine di memoria. (successo read)
+  + **read-normal**: il test verifica che si sia in grado di leggere il file "sample.txt" in modo normale e verificare che il contenuto letto corrisponda al campione fornito (sample). Questo test è progettato per verificare la corretta implementazione della lettura di file. (successo read)
   + **read-stdout**: questo test verifica la capacità di poter leggere da uno stream di output (stdout). (successo read)
-  + **read-zero**: questo test verifica come è gestita una lettura di 0 byte. L'aspettativa è che una lettura di 0 byte dovrebbe restituire 0 senza leggere effettivamente nulla dal file, e il buffer non dovrebbe essere modificato. (successo read)
+  + **read-zero**: questo test verifica come viene gestita una lettura di 0 byte. L'aspettativa è che una lettura di 0 byte restituisca 0 senza leggere effettivamente nulla dal file, e che il buffer non non venga modificato. (successo read)
 
 + create
 
-  + **create-bad-ptr**: questo test verifica che venga gestita correttamente la creazione di processi con "cattivi" puntatori o indirizzi non validi, terminando il processo di test con un codice di uscita specifico in caso di errore. (errore  create)
-  + **create-bound**: questo test verifica se si gestisce correttamente l'apertura di file quando i loro nomi attraversano i confini di pagina. (successo create)
-  + **create-empty**: questo test verifica come è gestita la creazione di un file quando viene passata una stringa vuota come nome. (errore create)
+  + **create-bad-ptr**: questo test verifica che venga gestita correttamente la creazione di processi con "cattivi" puntatori o indirizzi non validi, terminando il processo di test con un codice di uscita specifico in caso di errore. (errore create)
+  + **create-bound**: il test verifica che venga gestita correttamente l'apertura di file quando i loro nomi attraversano i confini di pagina. (successo create)
+  + **create-empty**: questo test verifica come viene gestita la creazione di un file quando viene passata una stringa vuota come nome. (errore create)
   + **create-exists**: la creazione di un file con un nome già esistente dovrebbe fallire. Questo test verifica che venga gestita correttamente questa situazione. (errore create)
-  + **create-long**: la creazione di un file con un nome così lungo dovrebbe fallire, questo test verifica come è gestita questa situazione. (errore create)
-  + **create-null**: questo test tenta di creare un un file con puntatore nullo. (errore create)
-  + **create-normal**: questo test serve a verificare la capacità  di creare file ordinari e vuoti. (successo create)
+  + **create-long**: la creazione di un file con un nome così lungo dovrebbe fallire, questo test verifica come viene gestita tale situazione. (errore create)
+  + **create-null**: il test tenta di creare un file con un puntatore nullo. (errore create)
+  + **create-normal**: questo test serve a verificare la capacità di creare file ordinari e vuoti. (successo create)
 
 
 Test superati delle syscall implementate (comando `make check`)
@@ -879,47 +882,45 @@ _Esempio di syscall che si muove dallo spazio utente allo spazio kernel in Pinto
 Il file "process.c" in Pintos gestisce la creazione, l'esecuzione e la terminazione dei processi nel sistema operativo. Contiene codice per inizializzare, avviare e gestire le attività dei processi, inclusi il caricamento dei programmi in memoria e la gestione dello stato dei processi.
 In particolare:
 
-1) Viene aggiunta una funzione chiamata "*get_child*" che serve per ottenere il processo figlio utilizzando l'ID del processo padre.
+1) Viene aggiunta una funzione chiamata `get_child()` che serve per ottenere il processo figlio utilizzando l'ID del processo padre.
 
-2) E' stata modificata la funzione "*process_execute*", aggiungendo un pezzo di codice che estre il nome del processo da parametri riga di comando e lo copia in process_name. Inoltre, viene aggiunta anche la gestione della sincronizzazione tra un thread padre e il suo thread figlio grazie all'utilizzo di semafori (Se il thread padre raggiunge questa riga prima che il thread figlio incrementi il valore del semaforo (inizialmente 0), il thread padre si blocchera in attesa del caricamento da parte del thread figlio.) Viene posto anche un costrutto IF per verificare se il caricamento non è stato completato con successo tramite flag e ritorno errore in caso di caricamento fallito.
+2) È stata modificata la funzione `process_execute`, aggiungendo un pezzo di codice che estre il nome del processo da parametri riga di comando e lo copia in `process_name`. Inoltre, viene aggiunta anche la gestione della sincronizzazione tra un thread padre e il suo thread figlio grazie all'utilizzo di semafori (Se il thread padre raggiunge questa riga prima che il thread figlio incrementi il valore del semaforo (inizialmente 0), il thread padre si blocchera in attesa del caricamento da parte del thread figlio.) Viene posto anche un costrutto `IF` per verificare se il caricamento è stato completato con successo tramite flag e ritorno errore in caso di caricamento fallito.
 
-3) Viene implementata la funzione "*process_wait*", che adesso aspetta la terminazione di un processo
-figlio specificato da child_tid. Se il processo figlio è ancora attivo, il padre si blocca fino a quando il figlio non termina. Una volta che il figlio termina, il padre deve recuperare il valore di ritorno del figlio, rimuovere il figlio dalla lista dei figli e restituire il valore di ritorno del figlio. In caso di errore (il padre non ha figli o il figlio specificato non esiste) ritorno -1.
+3) Viene implementata la funzione `process_wait`, che adesso aspetta la terminazione di un processo figlio specificato da `child_tid`. Se il processo figlio è ancora attivo, il padre si blocca fino a quando il figlio non termina. Una volta che il figlio termina, il padre deve recuperare il valore di ritorno del figlio, rimuovere il figlio dalla lista dei figli e restituire il valore di ritorno del figlio. In caso di errore (il padre non ha figli o il figlio specificato non esiste) ritorno -1.
 
-4) La funzione "*process_exit*" viene anch'essa modificata, in quanto adesso si cquisisce il lock per garantire l'accesso esclusivo alla risorsa condivisa, per poi scorrere la lista dei figli del thread corrente e dealloco la memoria associata a ciascun figlio (facendo la stessa cosa anche con i file aperti). 
+4) La funzione `process_exit` viene anch'essa modificata, in quanto adesso si acquisisce il lock per garantire l'accesso esclusivo alla risorsa condivisa, per poi scorrere la lista dei figli del thread corrente e deallocare la memoria associata a ciascun figlio (facendo la stessa cosa anche con i file aperti). 
 
-5) La funzione "*setup_stack*" viene aggiornata per preparare lo spazio di memoria chiamato "stack" per un nuovo processo. Fa questo creando una pagina di memoria, organizzando gli argomenti passati al programma in modo da poter essere acceduti facilmente e sistemando i parametri necessari per l'avvio del programma all'interno dello stack. Alla fine, restituisce un valore che indica se l'operazione è riuscita o meno.
+5) La funzione `setup_stack` viene aggiornata per preparare lo spazio di memoria chiamato "stack" per un nuovo processo. Ciò viene realizzato creando una pagina di memoria e organizzando gli argomenti passati al programma in modo che siano facilmente accessibili. Inoltre, vengono sistemati i parametri necessari per avviare il programma all'interno dello stack. Alla fine, la funzione restituisce un valore che indica se l'operazione è riuscita o meno.
 
 **process.h**
 
 Il file process.h in Pintos fornisce le dichiarazioni e le firme delle funzioni utilizzate per la gestione dei processi, inclusa la creazione, l'eliminazione e la gestione dello stato dei processi nel sistema operativo. In particolare:
 
-1) Vengono aggiunta la libreria stdlib.h e la struttura _child_ che mi serve per tenere traccia dei processi figlio
-e dei loro valori di ritorno.
+1) Viene aggiunta la libreria `stdlib.h` e la struttura _child_ necessaria per tenere traccia dei processi figlio e dei loro valori di ritorno.
 
 ### Modifiche in src/threads ###
 
 **thread.c**
 
-Il file thread.c gestisce la creazione, la gestione e lo scheduling dei thread nel sistema operativo. Contiene codice per la creazione dei thread, la sincronizzazione tra di essi e la gestione dello scambio della CPU tra i diversi thread in esecuzione. In particolare:
+Il file `thread.c` gestisce la creazione, la gestione e lo scheduling dei thread nel sistema operativo. Contiene codice per la creazione dei thread, la sincronizzazione tra di essi e la gestione dello scambio della CPU tra i diversi thread in esecuzione. In particolare:
 
-1) Viene modificata la funzione "*thread_create*" in maniera tale che il thread che viene appena creato sappia dell'esistenza del suo "padre" (con " t->parent = thread_current()"), allo stesso tempo viene tenuta traccia dei file aperti dal thread e viene aggiunto il thread figlio alla lista dei figli del thread padre, permettendo al padre di tenerne traccia e gestirne l'esecuzione. 
+1) Viene modificata la funzione `thread_create` in maniera tale che il thread che viene appena creato sappia dell'esistenza del suo "padre" (con `t->parent = thread_current()`). Allo stesso tempo viene tenuta traccia dei file aperti dal thread e viene aggiunto il thread figlio alla lista dei figli del thread padre, permettendo al padre di tenerne traccia e gestirne l'esecuzione. 
 
-2) Viene modificata la funzione "*running_thread*", dove vengono inizializzate le strutture dati necessarie per gestire i thread figli e sincronizzare il thread padre con i suoi figli nel sistema operativo. La lista children viene utilizzata per tenere traccia dei thread figli del thread corrente, mentre il semaforo child_sem viene utilizzato per sincronizzare il thread padre con i suoi thread figli.
+2) Viene modificata la funzione `running_thread`, dove vengono inizializzate le strutture dati necessarie per gestire i thread figli e sincronizzare il thread padre con i suoi figli nel sistema operativo. La lista `children` viene utilizzata per tenere traccia dei thread figli del thread corrente, mentre il semaforo `child_sem` viene utilizzato per sincronizzare il thread padre con i suoi thread figli.
 
 **thread.h**
 
 Vengono aggiunte le seguenti variabili:
 
-* _struct list file_list;_ è la lista dei file aperti dal thread
-* _int fd_count;_ tiene traccia del numero totale di file aperti dal thread.
-* _struct thread *parent;_ si passa dallo stato di ritorno al thread genitore quando il thread corrente termina l'esecuzione.
-* _struct list children;_ è la lista dei processi figlio del thread corrente. 
-* _bool production_flag;_ è un flag per segnalare al processo genitore che il processo figlio è stato caricato con successo, e quindi proseguire nell'esecuzione.
+* _struct list file_list:_ è la lista dei file aperti dal thread
+* _int fd_count:_ tiene traccia del numero totale di file aperti dal thread.
+* _struct thread *parent:_ si passa dallo stato di ritorno al thread genitore quando il thread corrente termina l'esecuzione.
+* _struct list children:_ è la lista dei processi figlio del thread corrente. 
+* _bool production_flag:_ è un flag per segnalare al processo genitore che il processo figlio è stato caricato con successo e quindi proseguire nell'esecuzione.
 * _struct semaphore production_sem;_ è un semaforo per far attendere al thread padre che il thread figlio inizi l'esecuzione.
-* _struct file *file;_ è un puntatore al file eseguibile associato al thread corrente.
-* _struct semaphore child_sem;_ è un semaforo che uso quando un thread attende un processo figlio.
-* _tid_t waiton_child;_ tiene traccia per quale thread figlio, il thread è in attesa.
+* _struct file *file:_ è un puntatore al file eseguibile associato al thread corrente.
+* _struct semaphore child_sem:_ è un semaforo che viene usato quando un thread attende un processo figlio.
+* _tid_t waiton_child:_ tiene traccia per quale thread figlio, il thread è in attesa.
 
 
 ### DOCUMENTAZIONE ###
