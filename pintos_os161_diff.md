@@ -842,15 +842,6 @@ Test superati delle syscall implementate (comando `make check`)
 ![test2](./images/test2.png)
 
 
-## DEBUG ##
-
-Pintos viene eseguito sul simulatore Qemu, per cui è necessario connettere in remoto un'applicazione GDB all'istanza di Pintos in questo simulatore per eseguire il debug.
-
-pintos -q run alarm-single
-pintos --gdb -- -q run alarm-single
-
-_continuare_
-
 
 ## Funzionamento di una chiamata ad una syscall in Pintos ##
 
