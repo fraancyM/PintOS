@@ -202,6 +202,11 @@ Pintos implementa una gestione della memoria virtuale base, che include la pagin
 
 In particolare, la memoria fisica di _Pintos_ è suddivisa in pagine di dimensioni fisse, ognuna con un numero di pagina univoco. Ogni processo ha un proprio spazio di indirizzamento virtuale, suddiviso in pagine. La mappatura tra gli indirizzi virtuali dei processi e gli indirizzi fisici delle pagine è gestita da una tabella (Page Table) specifica per ciascun processo. Esso fa uso di strutture dati quali vettori, liste, bitmap, ma principalmente _Pintos_ include una struttura di tipo BitMap per tenere traccia dell'utilizzo in un insieme di risorse (identiche). Inoltre, viene utilizzata anche una struttura di tipo Hash Table che, in maniera efficiente supporta gli inserimenti ed eliminazioni su un'ampia gamma di tabelle. 
 
+Per quanto riguarda la frame table, la frame table di _Pintos_ contiene un'entry per ogni frame che contiene una pagina utente. Ogni entry nella frame table contiene un puntatore alla pagina, se presente, che la occupa attualmente, più altri dati a nostra scelta. La frame table consente a Pintos di implementare in modo efficiente una politica di eliminazione, scegliendo una pagina da eliminare quando non ci sono frame liberi. Quindi, sia _Pintos_ che _OS161_ gestiscono la frame table in maniera analoga, e soprattutto possiedono un processo di liberazione del frame similare, perciò seguendo i seguenti passi:
+1) Scegliere un frame da eliminare, utilizzando l'algoritmo di sostituzione della pagina (sono da tenere in considerazione anche dirty bit e accessed bit durante la scelta del frame).
+2) Rimuovere i riferimenti al frame da qualsiasi tabella delle pagine che fa riferimento ad esso.
+3) Se necessario, scrivere la pagina nel file system o scambiarla.
+
 _Pintos_ possiede anche una "supplemental page table" per integrare dati addizionali per ogni pagina, e il suo utilizzatore più importante è il "page fault handler". Viene usata principalmente per due motivi:
 
 1) Durante un page fault, il kernel cerca la pagina virtuale che ha causato l'errore nella tabella delle "supplemental page table" per scoprire quali dati dovrebbero essere presenti.
@@ -896,7 +901,8 @@ In particolare:
 
 Il file process.h in Pintos fornisce le dichiarazioni e le firme delle funzioni utilizzate per la gestione dei processi, inclusa la creazione, l'eliminazione e la gestione dello stato dei processi nel sistema operativo. In particolare:
 
-1) Viene aggiunta la libreria `stdlib.h` e la struttura _child_ necessaria per tenere traccia dei processi figlio e dei loro valori di ritorno.
+1) Viene aggiunta la libreria `stdlib.h` 
+2) Viene aggiunta struttura _child_ necessaria per tenere traccia dei processi figlio e dei loro valori di ritorno.
 
 ### Modifiche in src/threads ###
 
