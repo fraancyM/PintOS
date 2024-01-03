@@ -288,9 +288,8 @@ La disabilitazione degli interrupt è una pratica comune nei sistemi operativi p
 
 La disabilitazione degli interrupt viene utilizzata per impedire la prelazione automatica dei thread da parte del timer o di altri interrupt, garantendo che il thread in esecuzione abbia la precedenza. Tuttavia, in Pintos si cerca di limitarne l'uso per evitare perdite di informazioni importanti, come i clock del timer o gli eventi di input. È fortemente suggerita la sincronizzazione esplicita utilizzando le primitive di sincronizzazione offerte dal sistema (_`thread/interrupt.h`_).
 
-In **OS161**, la disabilitazione degli interrupt è gestita attraverso le funzioni `spl0()`, `splhigh()`, e `splx(s)` ( _`kern/include/spl.h`_ ). Queste funzioni consentono di impostare il livello di priorità degli interrupt, bloccando quelli meno urgenti durante l'esecuzione di sezioni critiche. 
+In **OS161**, la disabilitazione degli interrupt è gestita attraverso le funzioni `spl0()`, `splhigh()`, e `splx(s)` ( _`kern/include/spl.h`_ ). Queste funzioni consentono di gestire le priorità degli interrupt, bloccando quelli meno urgenti durante l'esecuzione di sezioni critiche. 
 
-Entrambi i sistemi operativi utilizzano la disabilitazione degli interrupt, tuttavia **Pintos** offre una maggiore flessibilità, incoraggiando l'uso di primitive di sincronizzazione più specifiche per evitare l'eccessiva disabilitazione degli interrupt. D'altra parte, **OS161** semplifica la gestione degli interrupt fornendo solo tre livelli di priorità.
 In entrambi i sistemi operativi Pintos e OS161, la disabilitazione degli interrupt è una pratica delicata che richiede attenzione. La scelta specifica di come gestire gli interrupt dipende dalle esigenze del sistema e dalla progettazione del kernel. 
 In generale, si tende a preferire l'utilizzo di pratiche di sincronizzazione esplicite e di limitare al minimo indispensabile la disabilitazione degli interrupt, al fine di garantire la stabilità e le prestazioni ottimali del sistema operativo.
 
@@ -304,8 +303,9 @@ L'operazione `up` acquisisce il lock associato al semaforo, incrementa il valore
 Queste operazioni sono essenziali per garantire la sincronizzazione nell'accesso concorrente alle risorse condivise nei sistemi operativi.
 Le funzioni equivalenti sono `sema_down` e `sema_up` in Pintos, e `P` e `V` in OS161.
 
-In **Pintos**, i semafori sono rappresentati da una struttura dati che include un valore non negativo e un'implementazione di operazioni atomiche di "down" e "up". La libreria gestisce internamente l'elenco dei thread in attesa utilizzando una lista collegata. L'uso di "down" e "up" consente di creare una sincronizzazione tra i thread.
-Il codice fornisce operazioni come `sema_init`, `sema_down`, `sema_try_down`, e `sema_up`. La `sema_down` blocca il thread se il valore è zero, mentre `sema_try_down` prova ad abbassare il semaforo senza attendere e restituisce true se ha successo. La `sema_up` incrementa il valore del semaforo e sveglia un thread in attesa, se presente.
+In **Pintos**, i semafori sono rappresentati da una struttura dati che include un valore non negativo e un'implementazione di operazioni atomiche di "down" e "up". La libreria gestisce internamente l'elenco dei thread in attesa utilizzando una linked list. L'uso di "down" e "up" consente di creare una sincronizzazione tra i thread.
+Il codice fornisce operazioni come `sema_init`, `sema_down`, `sema_try_down`, e `sema_up`.
+La `sema_down` blocca il thread se il valore è zero, mentre `sema_try_down` prova ad abbassare il semaforo senza attendere e restituisce true se ha successo. La `sema_up` incrementa il valore del semaforo e sveglia un thread in attesa, se presente.
 
 ![Semaforo in PintOS](./images/sem_pintos.JPG)
 
@@ -318,7 +318,7 @@ Tuttavia, ci sono alcune differenze nelle implementazioni specifiche.
 
 Pintos:
 
-- Utilizza una struttura di semaforo con un elenco collegato per i thread in attesa.
+- Utilizza una struttura di semaforo con una linked list per i thread in attesa.
 
 - Fornisce una versione "try" di "down" per evitare l'attesa in un ciclo stretto.
 
@@ -326,13 +326,12 @@ OS161:
 
 - Utilizza una struttura di semaforo con un canale di attesa (`wchan`) e un lock spin.
 
-- Implementa le operazioni "down" e "up" con i nomi `P` e `V`.
 
 L'approccio di Pintos è più semplice da implementare, ma può essere meno efficiente se ci sono molti thread in attesa su un semaforo. L'approccio di OS161 è più efficiente, ma può essere più difficile da implementare.
 
 ### Lock (MUTEX) ###
 
-Un **lock** è analogo a un semaforo con un valore iniziale di 1, equivalente al verde di un semaforo (semaforo binario). L'azione "up" di un blocco è chiamata "rilascio", mentre l'azione "down" è detta "acquisizione".
+Un **lock** è analogo a un semaforo con un valore iniziale di 1, equivalente al verde di un semaforo. L'azione "up" di un lock è chiamata "rilascio", mentre l'azione "down" è detta "acquisizione".
 
 A differenza di un semaforo, un lock ha una restrizione: solo il thread che acquisisce il lock, il "proprietario", può rilasciarlo. 
 _Se questa restrizione fosse problematica, l'utilizzo di un semaforo potrebbe essere preferibile._
@@ -380,7 +379,7 @@ Le operazioni devono essere eseguite atomicamente, e il thread corrente deve pos
 
 In entrambi i sistemi operativi, l'obiettivo delle condition variables è consentire ai thread di aspettare che determinate condizioni diventino vere, migliorando l'efficienza della sincronizzazione. 
 
-_In **Pintos** si fa anche riferimento al concetto di "monitor" come una forma avanzata di sincronizzazione rispetto a semafori o lock. Un monitor è costituito da dati da sincronizzare, un monitor lock e variabili di condizione._
+_In **Pintos** si fa anche riferimento al concetto di "monitor" come una forma avanzata di sincronizzazione rispetto a semafori o lock. Un monitor è costituito da dati da sincronizzare, un lock detto **monitor lock** e variabili di condizione._
 
 
 # Sezione II #
