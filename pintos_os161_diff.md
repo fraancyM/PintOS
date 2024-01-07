@@ -100,7 +100,42 @@ Tuttavia, sia in _OS161_ che in _Pintos_, è possibile implementare, come estens
 
 Sia OS161 che Pintos implementano l'algoritmo Round Robin, in cui i processi vengono schedulati in modo circolare. Ogni processo riceve un quantum di tempo assegnato (in _Pintos_ `#define TIME_SLICE 4`) e, quando il quantum scade, il processo viene messo in coda e viene eseguito il successivo processo pronto. Questo ciclo di esecuzione continua finchè ci sono processi nella coda pronti ad essere eseguiti.
 
-In _Pintos_ la funzione responsabile di "restituire" la CPU allo scheduler e consentire agli altri thread di essere eseguiti è la `thread_yield`.
+In _Pintos_ ad ogni interrupt del timer, la variabile globale `ticks` (numero di tic del timer dall'avvio di Pintos) viene incrementata di uno.
+
+`src/devices/timer.c`
+```c
+/* Timer interrupt handler. */
+static void timer_interrupt (struct intr_frame *args UNUSED){
+  ticks++;
+  thread_tick ();
+}
+```
+
+`src/threads/thread.c`
+```c
+void thread_tick (void){
+  struct thread *t = thread_current ();
+
+  /* Update statistics. */
+  if (t == idle_thread)
+    idle_ticks++;
+#ifdef USERPROG
+  else if (t->pagedir != NULL)
+    user_ticks++;
+#endif
+  else
+    kernel_ticks++;
+
+  /* Enforce preemption. */
+  if (++thread_ticks >= TIME_SLICE)
+    intr_yield_on_return ();
+}
+```
+Quando un thread esaurisce la sua fetta temporale, `thread_tick` chiama la funzione `intr_yield_on_return`, che modifica un flag per informare l'handler che, prima di tornare dall'interrupt, dovrebbe effettuare uno switch di contesto ad un thread diverso.
+
+![scheduling_pintos](./images/scheduling_pintos.png)
+
+A questo punto l'interrupt handler chiamerà la `thread_yield`, la funzione responsabile di cedere volontariamente la CPU allo scheduler e consentire al successivo thread pronto di essere eseguito.
 
 ```c
 void thread_yield (void) {
@@ -120,11 +155,8 @@ void thread_yield (void) {
   intr_set_level (old_level);
 }
 ```
-La funzione `thread_yield` consente al thread corrente di rilasciare volontariamente la CPU e di diventare pronto per essere eseguito nuovamente, ma senza mettersi in attesa. Ciò è utile per consentire allo scheduler di determinare quale thread deve essere eseguito successivamente, senza causare un ritardo significativo.
-
-Se il thread corrente non è l'`idle_thread` (il thread inattivo), il thread corrente viene inserito nella coda dei thread pronti (`ready_list`) utilizzando la `list_push_back()`. Questo significa che il thread è pronto ad essere eseguito, ma lo scheduler può decidere di concedere la CPU ad un altro thread prima di eseguirlo nuovamente. Viene impostato lo stato del thread corrente a `THREAD_READY`, indicando che il thread è pronto per l'esecuzione ma non è attualmente in esecuzione. Viene chiamata poi la funzione `schedule()` per permettere allo scheduler di decidere quale thread eseguire successivamente.
-
-Alla fine viene ripristinato il livello di interrupt utilizzando `intr_set_level (old_level)` e permettere che gli interrupt siano nuovamente abilitati alla priorità iniziale, prima della chiamata a `thread_yield`.
+Inizialmente, se il thread corrente non è l'`idle_thread` (il thread inattivo), viene inserito nella coda dei thread pronti (`ready_list`) utilizzando la `list_push_back()` e viene impostato lo stato a `THREAD_READY`, indicando che il thread corrente è pronto per l'esecuzione. Viene chiamata poi la funzione `schedule()`, che è responsabile di decidere quale thread eseguire successivamente. 
+Alla fine viene ripristinato il livello di interrupt alla priorità iniziale, prima della chiamata a `thread_yield`.
 
 ```c
 static void schedule (void) {
@@ -132,7 +164,8 @@ static void schedule (void) {
   struct thread *next = next_thread_to_run ();
   struct thread *prev = NULL;
 
-  /* Asserzioni per verificare che le interruzioni siano disabilitate e che il thread corrente non sia più in uno stato di esecuzione. */
+  /* Asserzioni per verificare che le interruzioni siano disabilitate e 
+  che il thread corrente non sia più in uno stato di esecuzione. */
   ASSERT (intr_get_level () == INTR_OFF);
   ASSERT (cur->status != THREAD_RUNNING);
   ASSERT (is_thread (next));
@@ -147,9 +180,9 @@ La funzione `schedule()`, nel dettaglio, svolge un ruolo essenziale: ottiene un 
 In OS161, il meccanismo del Round Robin viene gestito tramite la funzione `hardclock()`, in `kern/thread/clock.c`, che viene periodicamente chiamata dal gestore delle interruzioni del clock hardware. All'interno di questa funzione possono essere chiamate altre 2 funzioni definite in `kern/thread/thread.c`:
 
 - `thread_consider_migration()` per abilitare la migrazione dei thread tra i core della CPU;
-- `schedule()` per cambiare l'ordine dei thread nella coda dei processi pronti (ma attualmente non compie alcuna azione).
+- `schedule()` per cambiare l'ordine dei thread nella coda dei processi pronti (ma nativamente non compie alcuna azione).
 
-Successivamente, viene chiamata la funzione `thread_yield()` per far sì che il thread corrente ceda la CPU ad un altro thread tramite la `thread_switch()`.
+Successivamente, come in Pintos, viene chiamata la funzione `thread_yield()` per far sì che il thread corrente ceda la CPU ad un altro thread tramite la `thread_switch()`.
 
 ```c
 #define SCHEDULE_HARDCLOCKS	4	/* Reschedule every 4 hardclocks. */
@@ -170,8 +203,8 @@ void hardclock(void) {
 ```
 ```c
 void schedule(void) {
-	/* You can write this. If we do nothing, threads will run in
-	 * round-robin fashion. */
+	/* You can write this. If we do nothing, 
+  threads will run in round-robin fashion. */
 }
 ```
 
@@ -180,8 +213,6 @@ void schedule(void) {
 void thread_yield(void) {
 
 	thread_switch(S_READY, NULL, NULL);
-    /* Il thread corrente è READY perchè ha consumato tutto il suo intervallo di tempo 
-    ed è costretto a cedere CPU ad un altro thread */
 }
 ```
 
