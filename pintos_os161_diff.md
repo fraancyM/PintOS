@@ -972,3 +972,4 @@ https://jeason.gitbooks.io/pintos-reference-guide-sysu/content/synchronization.h
 
 http://users.cms.caltech.edu/~donnie/cs124/pintos_4.html
 
+https://uchicago-cs.github.io/mpcs52030/switch.html
