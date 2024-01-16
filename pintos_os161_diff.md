@@ -246,7 +246,6 @@ _Pintos_ possiede anche una "supplemental page table" per integrare dati addizio
 2) Il kernel consulta la "supplemental page table" quando un processo termina, per decidere quali risorse liberare.
 
 Per questi motivi _Pintos_ possiede un sistema di paginazione e memoria virtuale simile a quello presente su OS161, mentre la sostanziale differenza risiede nel livello di complessità con cui sono state implementate queste funzioni.
-La paginazione presente in OS161 è più avanzata, offrendo quindi funzionalità aggiuntive rispetto a Pintos.
 
 + OS161
 ```c
